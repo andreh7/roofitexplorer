@@ -17,10 +17,10 @@ package edu.ucsd.hep.roofitexplorer;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
+import edu.ucsd.hep.rootrunnerutil.AHUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import edu.ucsd.hep.rootrunnerutil.AHUtils;
 
 /**
  * Provides some utilities for handling user profiles.
