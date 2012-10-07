@@ -1,0 +1,8 @@
+.hg
+.hgignore
+
+*~
+target/
+
+nbactions*.xml
+nb-configuration.xml
