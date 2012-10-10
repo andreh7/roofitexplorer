@@ -38,13 +38,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JDesktopPane;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
@@ -61,6 +64,9 @@ public class Main
 
   /** the desktop pane */
   private JDesktopPane desktop;
+  
+  /** variable name used to assign the opened input file */
+  private final String inputFileVariableName = "fin";
   
   //----------------------------------------------------------------------
 
@@ -80,7 +86,7 @@ public class Main
       System.err.println(ex.getMessage());
 
     System.err.println();
-    System.err.println("usage: rooFitExplorer.jar filename.root workspacename");
+    System.err.println("usage: rooFitExplorer.jar [ filename.root [ workspacename ] ]");
   
     parser.printUsage(System.err);
     System.err.println();
@@ -91,6 +97,7 @@ public class Main
   }
   private WorkspaceMemberSelectionListener nodeSelectedCallbackForGraph;
   private WorkspaceData ws = null;
+  private JFileChooser openRootFileChooser;
   
   //----------------------------------------------------------------------
 
@@ -138,6 +145,38 @@ public class Main
 
   private void openRootFile(String fname, String workspaceName) throws IOException, MemberVerboseDataParseError
   {
+    // check arguments given:
+    //
+    //   - if fname is null, open a dialog to let the user choose 
+    //     a ROOT file
+    //
+    //   - if workspaceName is null, try to find all instances
+    //     of RooWorkspace in the input file and let the user
+    //     choose select one
+    if (fname == null)
+    {
+      if (openRootFileChooser == null)
+      {
+        openRootFileChooser = new JFileChooser();
+        
+        // note that it is important to specify the extension
+        // as 'root' and not as '.root'
+        openRootFileChooser.setFileFilter(new FileNameExtensionFilter("ROOT files","root"));
+      }
+      
+      int res = openRootFileChooser.showOpenDialog(desktop);
+      if (res != JFileChooser.APPROVE_OPTION)
+        return;
+      
+      fname = openRootFileChooser.getSelectedFile().getAbsolutePath();
+    }
+    
+    //--------------------
+    // TODO: check if file exists and is readable
+    
+    
+    //--------------------
+    
     // start a ROOT process to look at the file
     PipeCommandRunnerListener windowListener = null;
     if (options.showRootTerminal)
@@ -152,13 +191,24 @@ public class Main
     
     // root_runner.addCommandPipeListener(new StreamPrinterCommandListener());
     
-    root_runner.writeLine("new TFile(\"" + fname + "\");");
+    root_runner.writeLine("TFile *" + this.inputFileVariableName + " = new TFile(\"" + fname + "\");");
     root_runner.waitForCompletion();
     
     ws = null;
     
     if (fname.toLowerCase().endsWith((".root")))
     {
+      // check whether the workspaceName was specified or not
+      if (workspaceName == null)
+      {
+        workspaceName = userSelectWorkspace(root_runner);
+                
+        // no workspace selected or no workspace present
+        if (workspaceName == null)
+          return;
+      }
+      
+      
       // read a ROOT file
       WorkspaceDataReader reader = new WorkspaceDataReader(root_runner, fname, workspaceName);
 
@@ -261,10 +311,6 @@ public class Main
     
   }
 
-  //----------------------------------------------------------------------
-
-  
-  
   //----------------------------------------------------------------------
   private JMenuBar makeTopMenuBar(final JFrame frame)
   {
@@ -415,6 +461,47 @@ public class Main
     iframe.setVisible(true);
   }
 
+  //----------------------------------------------------------------------
+
+  /** given the ROOT session (assuming that there is an open file)
+   *  looks through the ROOT file for instances of RooWorkspace and
+   *  asks the user to select a workspace. 
+   
+      @return the name of the selected workspace or null if the user
+              canceled the selection or no workspace was found
+              in the file.
+   */
+  private String userSelectWorkspace(ROOTRunner root_runner) throws IOException
+  {
+    ROOTObjectsFinder finder = new ROOTObjectsFinder(root_runner, this.inputFileVariableName);
+    List<String> workspaceNames = finder.findInstancesOf("RooWorkspace");
+    
+    // assumes that there are no funny characters in the keys, such
+    // as newlines
+    
+    if (workspaceNames.isEmpty())
+    {
+      JOptionPane.showMessageDialog(desktop, "no instances of RooWorkspace found");
+      return null;
+    }
+    
+    // if exactly one workspace was found, take this one
+    if (workspaceNames.size() == 1)
+      return workspaceNames.get(0);
+    
+    // show a dialog with the workspaces we found
+    String selectedWorkspace = (String) 
+            JOptionPane.showInputDialog(null, "Please select a workspace", "Workspaces",
+            JOptionPane.INFORMATION_MESSAGE, null,
+            workspaceNames.toArray(), // values to select from
+            workspaceNames.get(0)     // default choice
+            );
+    
+    System.out.println("selection was: " + selectedWorkspace);
+  
+    return selectedWorkspace;
+  }
+ 
   //----------------------------------------------------------------------
 
 }
