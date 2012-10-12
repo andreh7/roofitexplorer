@@ -37,6 +37,8 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -48,6 +50,9 @@ import javax.swing.JOptionPane;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
@@ -75,6 +80,13 @@ public class Main
     // enable assertions
     ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
 
+    // set dock icon name for OSX
+    System.setProperty("com.apple.mrj.application.apple.menu.about.name", "rooFitExplorer"/* + fname + ":" + workspaceName */);
+    
+    // make the menu bar appear at the top of the screen on OSX
+    // (see http://stackoverflow.com/questions/8955638/how-do-i-move-my-jmenubar-to-the-screen-menu-bar-on-mac-os-x)
+    System.setProperty("apple.laf.useScreenMenuBar","true");
+    
     new Main().run(args);
   }
   
@@ -122,6 +134,9 @@ public class Main
   
   private void run(String[] args) throws IOException, CmdLineException
   {
+    checkOperatingSystem();
+    checkROOTexecutable();
+    
     processCommandLineOptions(args);
       
     // get the default user profile
@@ -231,13 +246,6 @@ public class Main
     
     // print top nodes
     System.out.println("top nodes=" + ws.getMembers().filter(new TopLevelMembersFilter()));
-    
-    // set dock icon name for OSX
-    System.setProperty("com.apple.mrj.application.apple.menu.about.name", "rooFitExplorer"/* + fname + ":" + workspaceName */);
-    
-    // make the menu bar appear at the top of the screen on OSX
-    // (see http://stackoverflow.com/questions/8955638/how-do-i-move-my-jmenubar-to-the-screen-menu-bar-on-mac-os-x)
-    System.setProperty("apple.laf.useScreenMenuBar","true");
     
       
     //----------
@@ -500,6 +508,63 @@ public class Main
     System.out.println("selection was: " + selectedWorkspace);
   
     return selectedWorkspace;
+  }
+ 
+  //----------------------------------------------------------------------
+
+  /** checks whether this is a known operating system 
+   *  and shows a dialog box if it is one where this software
+   *  was not tested */
+  private void checkOperatingSystem()
+  {
+    String osname = System.getProperty("os.name");
+    if ("Mac OS X".equals(osname))
+      return;
+    if ("Linux".equals(osname))
+      return;
+    
+    JOptionPane.showMessageDialog(null, "Warning: this software was not tested on this platform (" + osname + ")");
+  }
+
+  //----------------------------------------------------------------------
+
+  /** runs the given command, waits for completion and returns its exit status */
+  public static int getCommandExitStatus(String cmd) throws IOException
+  {
+    CommandLine parsedCmd = CommandLine.parse(cmd);
+    DefaultExecutor exec = new DefaultExecutor();
+    try
+    {
+      // note that this will throw an ExecuteException if the exit
+      // value is not what is expected (which is zero)
+
+      int res = exec.execute(parsedCmd);
+      return res;
+    } catch (ExecuteException ex)
+    {
+      return ex.getExitValue();
+    }
+  }
+  
+  //----------------------------------------------------------------------
+
+  /** checks whether 'root' is a command which is known to the (unix) shell */
+  private void checkROOTexecutable()
+  {
+    try
+    {
+      // this only works on Unix like systems
+      if (getCommandExitStatus("which root") == 0)
+        return;
+
+    } catch (IOException ex)
+    {
+      Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+    }
+
+    JOptionPane.showMessageDialog(null, "can't find a root executable");
+    System.exit(1);
+   
   }
  
   //----------------------------------------------------------------------
