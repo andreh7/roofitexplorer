@@ -67,6 +67,10 @@ public class AboutDialog extends JDialog
     new String[]{ "Apache POI",                
                   "http://poi.apache.org/", 
                   "Apache License 2.0"},
+
+    new String[]{ "Apache Commons Exec",                
+                  "http://commons.apache.org/exec/", 
+                  "Apache License 2.0"},
     
     new String[]{ "SwingX", 
                   "http://swingx.java.net/", 
