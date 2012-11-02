@@ -274,16 +274,8 @@ public class Main
     // About menu item handler for OSX, see http://stackoverflow.com/questions/6884272/java-os-x-lion-about-menu
     //----------
     
-    // TODO: what happens when this runs on Linux ?
-    Application osxApp = Application.getApplication();
-    osxApp.setAboutHandler(new AboutHandler() 
-    {
-      public void handleAbout(AboutEvent ae)
-      {
-        new AboutDialog(mainWindow).setVisible(true);
-      }
-    });  
-    //----------
+    OSXtools.addAboutHandler(mainWindow);
+   //----------
  
     
     // older version, probably inconvenient for
