@@ -116,6 +116,7 @@ public class ROOTObjectsFinder
   
   //----------------------------------------------------------------------
 
+  /** recurses into subdirectories */
   public List<String> findInstancesOf(String className) throws IOException
   {
     return findInstancesOf(className, null, true);
