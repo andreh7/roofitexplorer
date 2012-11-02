@@ -20,8 +20,8 @@ import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
 import edu.ucsd.hep.rootrunnerutil.ROOTRunnerImpl;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  *
@@ -29,8 +29,55 @@ import static org.junit.Assert.*;
  */
 public class ROOTObjectsFinderTest
 {
+  //----------------------------------------------------------------------
+
   final String inputFname = "testdata/ROOTObjectsFinderTest01.root";
 
+  //----------------------------------------------------------------------
+
+  /** just print all objects found (for convenience or inspecting
+   *  new test cases). Assume that everything inherits from TObject .
+   */
+  @Test 
+  public void test00() throws Exception
+  {
+    System.out.println("----------");
+    System.out.println("printing all instances of TObject");
+    System.out.println("----------");
+    ROOTRunner rootRunner = makeROOTRunner();
+    
+    String className = "TObject";
+    ROOTObjectsFinder instance = new ROOTObjectsFinder(rootRunner, "fin");
+    
+    List<String> result = instance.findInstancesOf(className);
+    
+    for (String item : result)
+    {
+      System.out.println("  " + item);
+    }
+    
+    System.out.println("----------");
+  }
+  
+  //----------------------------------------------------------------------
+  /** testing getting a top level non-TDirectory object */
+  @Test
+  public void test00a() throws Exception
+  {
+    ROOTRunner rootRunner = makeROOTRunner();
+    
+    String className = "TH1";
+    ROOTObjectsFinder instance = new ROOTObjectsFinder(rootRunner, "fin");
+    
+    List<String> result = instance.findInstancesOf(className,null, false);
+
+    System.out.println("GOT " + result);
+   
+    List<String> expResult = new ArrayList<String>();
+    expResult.add("histo3");
+    assertEquals(expResult, result);
+  }
+  
   //----------------------------------------------------------------------
 
   /**
@@ -40,13 +87,7 @@ public class ROOTObjectsFinderTest
   public void test01() throws Exception
   {
     System.out.println("findInstancesOf");
- 
-    ROOTRunner rootRunner = new ROOTRunnerImpl(
-            (PipeCommandRunnerListener)null,null,
-            "",
-      null);
-    
-    rootRunner.writeLine("fin = new TFile(\"" + inputFname + "\");");
+    ROOTRunner rootRunner = makeROOTRunner();
     
     String className = "TH1";
     ROOTObjectsFinder instance = new ROOTObjectsFinder(rootRunner, "fin");
@@ -58,7 +99,6 @@ public class ROOTObjectsFinderTest
     assertTrue(result.isEmpty());    
   }
 
-  //----------------------------------------------------------------------
 
   
   /**
@@ -68,13 +108,7 @@ public class ROOTObjectsFinderTest
   public void test01b() throws Exception
   {
     System.out.println("findInstancesOf");
- 
-    ROOTRunner rootRunner = new ROOTRunnerImpl(
-            (PipeCommandRunnerListener)null,null,
-            "",
-      null);
-    
-    rootRunner.writeLine("fin = new TFile(\"" + inputFname + "\");");
+    ROOTRunner rootRunner = makeROOTRunner();
     
     String className = "TH1";
     ROOTObjectsFinder instance = new ROOTObjectsFinder(rootRunner, "fin");
@@ -97,13 +131,7 @@ public class ROOTObjectsFinderTest
   public void test01c() throws Exception
   {
     System.out.println("findInstancesOf");
- 
-    ROOTRunner rootRunner = new ROOTRunnerImpl(
-            (PipeCommandRunnerListener)null,null,
-            "",
-      null);
-    
-    rootRunner.writeLine("fin = new TFile(\"" + inputFname + "\");");
+    ROOTRunner rootRunner = makeROOTRunner();
     
     String className = "TH1";
     ROOTObjectsFinder instance = new ROOTObjectsFinder(rootRunner, "fin");
@@ -128,13 +156,7 @@ public class ROOTObjectsFinderTest
   public void test02() throws Exception
   {
     System.out.println("findInstancesOf");
- 
-    ROOTRunner rootRunner = new ROOTRunnerImpl(
-            (PipeCommandRunnerListener)null,null,
-            "",
-      null);
-    
-    rootRunner.writeLine("fin = new TFile(\"" + inputFname + "\");");
+    ROOTRunner rootRunner = makeROOTRunner();
     
     String className = "TH1";
     ROOTObjectsFinder instance = new ROOTObjectsFinder(rootRunner, "fin");
@@ -145,11 +167,26 @@ public class ROOTObjectsFinderTest
     System.out.println("GOT " + result);
     
     List<String> expResult = new ArrayList<String>();
+    expResult.add("histo3");
     expResult.add("subdir1/histo2");
     expResult.add("subdir3/dirA/histo1");
     assertEquals(expResult, result);
   }
   
   //----------------------------------------------------------------------
+
+  private ROOTRunner makeROOTRunner()
+  {
+    ROOTRunner rootRunner = new ROOTRunnerImpl(
+            (PipeCommandRunnerListener)null,null,
+            "",
+      null);
+    
+    
+    rootRunner.writeLine("gSystem->ResetSignals();");
+    
+    rootRunner.writeLine("fin = new TFile(\"" + inputFname + "\");");
+    return rootRunner;
+  }
 
 }
