@@ -34,6 +34,7 @@ import edu.ucsd.hep.rootrunnerutil.view.CommandDisplayPanel;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +54,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
@@ -203,6 +205,9 @@ public class Main
       // add a newline to avoid merging the root command with previous commands
       this.userProfileData.getPreRootShellCommands() + "\n",
       null);
+        
+    // disable special ROOT signal handlers
+    root_runner.writeLine("gSystem->ResetSignals();");
     
     // root_runner.addCommandPipeListener(new StreamPrinterCommandListener());
     
@@ -245,7 +250,7 @@ public class Main
     //----------
     
     // print top nodes
-    System.out.println("top nodes=" + ws.getMembers().filter(new TopLevelMembersFilter()));
+    // System.out.println("top nodes=" + ws.getMembers().filter(new TopLevelMembersFilter()));
     
       
     //----------
@@ -533,6 +538,11 @@ public class Main
   {
     CommandLine parsedCmd = CommandLine.parse(cmd);
     DefaultExecutor exec = new DefaultExecutor();
+
+    // hack to disable printing of stdout on this process' stdout
+    ByteArrayOutputStream devNull = new ByteArrayOutputStream();
+    exec.setStreamHandler(new PumpStreamHandler(devNull));
+    
     try
     {
       // note that this will throw an ExecuteException if the exit
