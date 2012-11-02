@@ -7,6 +7,11 @@ foutName = "ROOTObjectsFinderTest01.root"
 import ROOT
 fout = ROOT.TFile(foutName, "RECREATE")
 
+# create a histogram in the top directory
+histo3 = ROOT.TH1F("histo3","histo3",10,0,1)
+histo3.Write()
+
+
 fout.mkdir("subdir1")
 fout.mkdir("subdir2")
 fout.mkdir("subdir3")
