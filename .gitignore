@@ -1,6 +1,6 @@
 .hg
 .hgignore
-
+.DS_Store
 *~
 target/
 
