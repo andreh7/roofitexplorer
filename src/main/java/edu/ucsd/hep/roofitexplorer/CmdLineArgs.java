@@ -15,6 +15,8 @@
  */
 package edu.ucsd.hep.roofitexplorer;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 
@@ -28,6 +30,12 @@ public class CmdLineArgs
           usage = "show a window with the communication to the ROOT process")
   boolean showRootTerminal = false;
 
+  @Option(name = "--lib",
+          metaVar = "LIB",
+          usage = "load the given shared object after ROOT startup. "+
+          "This is typically used to load rootcint generated compiled dictionaries for custom data types " +
+          "used in the workspace. Can be specified multiple times.")
+  List<String> librariesToLoad = new ArrayList<String>();
   
   // positional arguments                                                                                                     
   @Argument(index = 0)

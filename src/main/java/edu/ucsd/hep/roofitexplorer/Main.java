@@ -209,6 +209,14 @@ public class Main
     // disable special ROOT signal handlers
     root_runner.writeLine("gSystem->ResetSignals();");
     
+    // if loading of external shared libraries was requested on the command
+    // line, do it now
+    for (String libraryToLoad : options.librariesToLoad)
+    {
+      root_runner.writeLine(".L " + libraryToLoad);
+    }
+    
+    
     // root_runner.addCommandPipeListener(new StreamPrinterCommandListener());
     
     root_runner.writeLine("TFile *" + this.inputFileVariableName + " = new TFile(\"" + fname + "\");");
