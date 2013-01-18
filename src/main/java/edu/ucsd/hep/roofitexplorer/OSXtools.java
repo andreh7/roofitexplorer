@@ -15,12 +15,6 @@
  */
 package edu.ucsd.hep.roofitexplorer;
 
-import com.apple.eawt.AboutHandler;
-import com.apple.eawt.AppEvent;
-import com.apple.eawt.Application;
-import edu.ucsd.hep.roofitexplorer.view.misc.AboutDialog;
-import javax.swing.JFrame;
-
 /**
  * code specific to OSX (which uses classes which are not available
  * on other platforms)
@@ -31,24 +25,9 @@ public class OSXtools
 
   public static boolean isOSX()
   {
-    return "Darwin".equals(System.getProperty("os.name"));
+    // return "Darwin".equals(System.getProperty("os.name"));
+  
+    return System.getProperty("os.name").contains("OS X");
   }
   
-  static void addAboutHandler(final JFrame mainWindow)
-  {
-    if (! isOSX())
-      return;      
-    
-    // TODO: what happens when this runs on Linux ?
-    Application osxApp = Application.getApplication();
-    osxApp.setAboutHandler(new AboutHandler() 
-    {
-      public void handleAbout(AppEvent.AboutEvent ae)
-      {
-        new AboutDialog(mainWindow).setVisible(true);
-      }
-    });  
-  
-  }
-
 }
