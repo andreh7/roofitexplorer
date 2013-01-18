@@ -118,6 +118,12 @@ public class AboutDialog extends JDialog
                   "http://www.junit.org", 
                   "Common Public License - v 1.0"},
   
+    // used at top level
+    new String[]{ "Macify", 
+                  "http://simplericity.org/macify/", 
+                  "Apache License 2.0"},
+    
+    
   };
   
   //----------------------------------------------------------------------
@@ -174,7 +180,7 @@ public class AboutDialog extends JDialog
     //-----
     List<String> lines = new ArrayList<String>();
   
-    lines.add("<font color=\"red\" size=\"+2\">RooFitExplorer</font> &mdash; \u00A9 2011, 2012 University of California, San Diego");
+    lines.add("<font color=\"red\" size=\"+2\">RooFitExplorer</font> &mdash; \u00A9 2011-2013 University of California, San Diego");
     lines.add("");
     lines.add("distributed under the <a href=\"http://www.apache.org/licenses/LICENSE-2.0.txt\">Apache License 2.0</a>");
     lines.add("");
