@@ -261,8 +261,8 @@ public class Main
     // produce the windows
     //----------
     
-    final JFrame mainWindow = new JFrame("rooFitExplorer (" + fname + ":" + workspaceName + ")");
-
+    final MainWindow mainWindow = new MainWindow("rooFitExplorer (" + fname + ":" + workspaceName + ")");
+    
     mainWindow.setJMenuBar(this.makeTopMenuBar(mainWindow));
     
     desktop = new JDesktopPane();
@@ -274,11 +274,6 @@ public class Main
     mainWindow.setExtendedState(JFrame.MAXIMIZED_BOTH);
     mainWindow.setSize(Toolkit.getDefaultToolkit().getScreenSize());
     
-    //----------
-    // About menu item handler for OSX, see http://stackoverflow.com/questions/6884272/java-os-x-lion-about-menu
-    //----------
-    
-    OSXtools.addAboutHandler(mainWindow);
    //----------
  
     
@@ -321,21 +316,11 @@ public class Main
   }
 
   //----------------------------------------------------------------------
-  private JMenuBar makeTopMenuBar(final JFrame frame)
+  private JMenuBar makeTopMenuBar(final MainWindow frame)
   {
     JMenuBar menuBar = new JMenuBar();
 
-    JMenuItem menuItem = new JMenuItem("About...");
-
-    menuItem.addActionListener(new ActionListener()
-    {
-      public void actionPerformed(ActionEvent ae)
-      {
-        new AboutDialog(frame).setVisible(true);
-      }
-    });
-    
-    menuBar.add(menuItem);
+    JMenuItem menuItem;
     //----------
     JMenu menu = new JMenu("New");
     menuItem = new JMenuItem("Graph panel");
@@ -365,7 +350,27 @@ public class Main
     
     menu.add(menuItem);
     
-    
+
+    // add an 'About' menu item here
+    // (TODO: should move to a different menu)
+    // but only if we're not on OSX
+    if (! OSXtools.isOSX())
+    {
+      menu.addSeparator();
+
+      menuItem = new JMenuItem("About...");
+
+      menuItem.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent ae)
+        {
+          new AboutDialog(frame).setVisible(true);
+        }
+      });
+
+      menu.add(menuItem);
+    }
+
     //-----
     menuBar.add(menu);
     
