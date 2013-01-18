@@ -15,12 +15,8 @@
  */
 package edu.ucsd.hep.roofitexplorer;
 
-import com.apple.eawt.AboutHandler;
-import com.apple.eawt.AppEvent.AboutEvent;
-import com.apple.eawt.Application;
 import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
 import edu.ucsd.hep.roofitexplorer.filters.MemberFilterFactoryList;
-import edu.ucsd.hep.roofitexplorer.filters.TopLevelMembersFilter;
 import edu.ucsd.hep.roofitexplorer.view.graph.GraphMaker;
 import edu.ucsd.hep.roofitexplorer.view.graph.GraphPanel;
 import edu.ucsd.hep.roofitexplorer.view.graph.GraphPanelAdapter;
