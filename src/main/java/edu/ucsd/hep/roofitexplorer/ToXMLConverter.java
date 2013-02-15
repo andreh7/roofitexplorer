@@ -76,7 +76,7 @@ public class ToXMLConverter
     WorkspaceData ws = null;
     
     // read a ROOT file
-    WorkspaceDataReader reader = new WorkspaceDataReader(root_runner, fname, workspaceName);
+    GenericWorkspaceDataReader reader = GenericWorkspaceDataReader.makeReader(root_runner, fname, workspaceName);
 
     ws = reader.getWorkspace();
 

@@ -27,26 +27,31 @@ import edu.ucsd.hep.rootrunnerutil.AHUtils;
 import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * A newer version of WorkspaceDataReader, not relying on the output
+ * of RooWorkspace::Print(..) (which can contain error messages in the middle)
+ * but running a small macro to get the names and classes of the members 
+ * in the workspace.
+ * 
  * A factory for WorkspaceData objects: sends commands to ROOT
  * 'interactively' to explore the given RooFit workspace
  * @author holzner
  */
-public class WorkspaceDataReader extends GenericWorkspaceDataReader
+public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
 {
   private final ROOTRunner rootRunner;
   private final String workspaceName;
 
   private final List<RooAbsPdfData>   pdfs = new ArrayList<RooAbsPdfData>();
-  private final List<RooAbsRealData>  functions = new ArrayList<RooAbsRealData>();
-  private final List<RooRealVarData>  variables = new ArrayList<RooRealVarData>();
   private final List<RooConstVarData> constants = new ArrayList<RooConstVarData>();
+  private final List<RooRealVarData>  variables = new ArrayList<RooRealVarData>();
   private final List<RooAbsDataData>  datasets = new ArrayList<RooAbsDataData>();
+
+  private final List<RooAbsRealData>  functions = new ArrayList<RooAbsRealData>();
   private final WorkspaceData workspace;
   
   //----------------------------------------------------------------------
@@ -57,7 +62,7 @@ public class WorkspaceDataReader extends GenericWorkspaceDataReader
    * @param workspaceName
    * @throws IOException 
    */
-  public WorkspaceDataReader(ROOTRunner rootRunner, String fname, String workspaceName) throws IOException, MemberVerboseDataParseError
+  public WorkspaceDataReader2(ROOTRunner rootRunner, String fname, String workspaceName) throws IOException, MemberVerboseDataParseError
   {
     this.rootRunner = rootRunner;
     this.workspaceName = workspaceName;
@@ -75,7 +80,24 @@ public class WorkspaceDataReader extends GenericWorkspaceDataReader
   {
     // we could actually redirect this to a temporary file
     // and then read it
-    String summary = rootRunner.getCommandOutput(workspaceName + ".Print();");
+
+    String cmd = "{TIterator *it = " + workspaceName + "->componentIterator(); " +
+      "TObject *obj; " + 
+      "while ((obj = it->Next()) != NULL) " +
+        "{ cout " +
+        "<< obj->ClassName() << \",\" " + 
+        
+        // need the following to know which attributes should be read
+        "<< obj->IsA()->InheritsFrom(RooAbsPdf::Class()) << \",\" " +
+        "<< obj->IsA()->InheritsFrom(RooConstVar::Class()) << \",\" " +
+        "<< obj->IsA()->InheritsFrom(RooRealVar::Class()) << \",\" " +
+        "<< obj->IsA()->InheritsFrom(RooAbsData::Class()) << \",\" " +
+        "<< obj->IsA()->InheritsFrom(RooAbsReal::Class()) << \",\" " +
+        
+        "<< obj->GetName() " + 
+        "<< endl; } }";
+    
+    String summary = rootRunner.getCommandOutput(cmd);
 
 //    System.out.println("GOT SUMMARY:");
 //    System.out.println(summary);
@@ -87,68 +109,49 @@ public class WorkspaceDataReader extends GenericWorkspaceDataReader
     // for the moment, for the sake of simplicity, read the entire
     // output into memory
     List<String> lines = AHUtils.splitToLines(summary);
-    //-----
-    // ignore lines about errors for the moment
-    // e.g.
-    // [#0] ERROR:InputArguments -- RooArgSet::checkForDup: ERROR argument with name ...
-    Pattern patError = Pattern.compile("\\[#\\d+\\] ERROR:");
-    Iterator<String> it = lines.iterator();
-    while (it.hasNext())
-    {
-      String l = it.next();
-      if (patError.matcher(l).lookingAt())
-      { 
-        it.remove();
-      
-      }
-    }
-    
-    //-----
-    
-    
-    // ignore everything before the first line
-    boolean found = false;
-    while (! lines.isEmpty())
-    {
-      String line = lines.remove(0).trim();
-    
-      // wait for the title line
-      if (Pattern.matches("RooWorkspace\\(" + Pattern.quote(this.workspaceName) + "\\)" +
-        // seems to be the title here (but in some cases is empty)  
-        "\\s+.*\\s+contents$", line))
-      {
-        found = true;
-        break;
-      }
-    }
-    
-    if (! found)
-      throw new Error("could not find title line in workspace summary description");
 
     List<String> thisGroup = new ArrayList<String>();
-    
+
+    // the output format of the above macro is ClassName,InstanceName
+    // we assume that the class name does not have any commas in it
+    // (but the instance name actually may have...)
     while (!lines.isEmpty())
     {
       String line = lines.remove(0).trim();
-      if (line.isEmpty())
-      {
-        // process the group
-        if (!thisGroup.isEmpty())
-        {
-          // empty groups can happen e.g. immediately after reading the title line      
-          processLineGroup(thisGroup);
-          thisGroup.clear();
-        }
-      } else
-        // just add the line
-        thisGroup.add(line);
-      
-    } // while the workspace is not empty   
 
-    // process the last group
-    if (!thisGroup.isEmpty())
-      processLineGroup(thisGroup);
-    
+      System.out.println("line='" + line + "'");
+
+      if (line.isEmpty())
+        continue;
+      
+      String parts[] = line.split(",",7);
+      
+      String className = parts[0];
+      boolean isAbsPdf = "1".equals(parts[1]);
+      boolean isConstVar = "1".equals(parts[2]);
+      boolean isRealVar = "1".equals(parts[3]);
+      boolean isAbsData = "1".equals(parts[4]);
+      boolean isAbsReal = "1".equals(parts[5]);
+      
+      String varname = parts[6];
+      
+      // note the order of the following comparisons: almost everything is also 
+      // a RooAbsReal so we check more specific types before
+      if (isAbsPdf)
+        this.readSinglePdf(varname, className);
+      else if (isConstVar)
+        this.readSingleRooConstVar(varname);
+      else if (isRealVar)
+        this.readSingleVariable(varname);
+      else if (isAbsData)
+        this.readSingleDataSet(varname, className);
+      else if (isAbsReal)
+        this.readSingleFunction(varname, className);
+      else
+        System.err.println("don't know what kind of type '" + varname + "' is, ignoring it");
+      
+    } // loop over all lines of the workspace members printout
+
     //----------
     // fix RooConstVars which are not printed in the summary
     // i.e. loop over all known objects and see whether they
@@ -176,65 +179,6 @@ public class WorkspaceDataReader extends GenericWorkspaceDataReader
 
   //----------------------------------------------------------------------
   
-  /** parses one group of line (corresponding to one type of objects,
-   *  e.g. pdfs, functions etc.) */
-  private void processLineGroup(List<String> thisGroup) throws IOException, MemberVerboseDataParseError
-  {
-    if (thisGroup.size() < 2)
-      throw new Error("expected at least two lines in workspace summary");
-    
-    String firstLine = thisGroup.remove(0);
-    String nextLine = thisGroup.remove(0);
-
-    if (! Pattern.matches("-+\\s*$", nextLine))
-      throw new Error("expected a line consisting only of dashes here but got '" + nextLine + "'");
-    
-    if (firstLine.equals("variables"))
-      readVariables(thisGroup);
-    else if (firstLine.equals("p.d.f.s"))
-      readPdfs(thisGroup);
-    else if (firstLine.equals("functions"))
-      readFunctions(thisGroup);
-    else if (firstLine.equals("datasets"))
-      readDatasets(thisGroup);
-    else
-      throw new Error("unexpected line '" + firstLine + "' in workspace summary output");
-
-  }
-  
-  //----------------------------------------------------------------------
-  
-  /** reads the list of variables from the summary list.
-   *  The first line must be the line immediately after the line
-   *  consisting only of dashes)
-   * 
-   * @param subList 
-   */
-  private void readVariables(List<String> lines) throws IOException
-  {
-    // the variable summary is special: it seems to consist of
-    // one single line with the names of all variables
-    
-    // TODO: not clear how the printout looks like when there are NO variables at all 
-    if (lines.size() != 1)
-      throw new Error("exactly one line expected here");
-    
-    String line = lines.get(0);
-    
-    if (! line.startsWith("(") || ! line.endsWith(")"))
-      throw new Error("line should start with ( and end with )");
-    
-    line = line.substring(1,line.length()-1);
-    
-    for (String varName : line.split(","))
-    {
-      readSingleVariable(varName);      
-      
-    } // loop over lines
-  }
-
-  //----------------------------------------------------------------------
-
   /** parses the lines in the pdf section of the workspace summary output */
   private void readPdfs(List<String> lines) throws IOException, MemberVerboseDataParseError
   {
@@ -321,30 +265,6 @@ public class WorkspaceDataReader extends GenericWorkspaceDataReader
       readSingleFunction(matcher.group(2), matcher.group(1));
       
       // System.out.println("inserted pdf " + pdfs.get(pdfs.size()-1).varName );
-      
-    } // loop over lines
-  }
-
-  //----------------------------------------------------------------------
-
-  private void readDatasets(List<String> lines) throws IOException
-  {
-    // it turns out that RooFit also allows dots in the object
-    // names (and probably also other characters), so we just
-    // take all the names up to the first parenthesis
-    // (assuming there will always be one)
-
-    // original pattern
-    // Pattern pattern = Pattern.compile("(.*)\\::([a-zA-Z0-9_]*)\\(");
-
-    Pattern pattern = Pattern.compile("(.*)\\::(.*)\\(");
-    for (String line : lines)
-    {
-      Matcher matcher = pattern.matcher(line);
-      if (! matcher.lookingAt())
-        throw new Error("unexpected line '" + line + "' in workspace summary output in datasets section");
-
-      readSingleDataSet(matcher.group(2), matcher.group(1));
       
     } // loop over lines
   }
