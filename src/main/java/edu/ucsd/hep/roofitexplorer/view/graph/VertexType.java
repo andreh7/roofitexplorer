@@ -17,6 +17,7 @@ package edu.ucsd.hep.roofitexplorer.view.graph;
 
 import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
 import edu.ucsd.hep.roofitexplorer.datatypes.RooFormulaVarData;
+import edu.ucsd.hep.roofitexplorer.datatypes.RooRealVarData;
 import java.util.List;
 
 /**
@@ -56,27 +57,55 @@ public class VertexType implements Comparable<VertexType>
     retval +=
         this.obj.getClassName() + "<br/>" + 
         this.obj.getVarName() + "<br/>"; 
-  
-    if (this.obj instanceof RooFormulaVarData)
-    {
-      RooFormulaVarData obj2 = (RooFormulaVarData)(this.obj);
-     
-      // template expression
-      retval += obj2.getFormulaTemplate() + "<br/>";
-      
-      // explain the variables
-      List<String> varnames = obj2.getVariableNames(); 
-      for (int i = 0; i < varnames.size(); ++i)
-        retval += "@" + i + ": " + varnames.get(i) + "<br/>";
 
-      // add expanded expressions
-      retval += obj2.getExpandedFormulaTemplate() + "<br/>";
-    }
+    // type specific information
+    if (this.obj instanceof RooFormulaVarData)
+      retval += this.getRooFormulaVarSpecificString((RooFormulaVarData)(this.obj));
+    else if (this.obj instanceof RooRealVarData)
+      retval += this.getRooRealVarSpecificString((RooRealVarData)(this.obj));
+
+      
     
     retval += "</html>";
     return retval;
   }
  
+  //----------------------------------------------------------------------
+  private String getRooRealVarSpecificString(RooRealVarData data)
+  {
+    String retval = "";
+    if (data.value != null)
+      retval += "value: " + data.value + "<br/>";
+    
+    if (data.isConstant != null)
+    {
+      if (data.isConstant)
+        retval += "CONSTANT" + "<br/>";
+      else
+        retval += "not constant" + "<br/>";
+    }
+    
+    return retval;
+  }
+  //----------------------------------------------------------------------
+
+  
+  private String getRooFormulaVarSpecificString(RooFormulaVarData data)
+  {
+    // template expression
+    String retval = data.getFormulaTemplate() + "<br/>";
+      
+    // explain the variables
+    List<String> varnames = data.getVariableNames();
+    for (int i = 0; i < varnames.size(); ++i)
+      retval += "@" + i + ": " + varnames.get(i) + "<br/>";
+
+    // add expanded expressions
+    retval += data.getExpandedFormulaTemplate() + "<br/>";
+    
+    return retval;
+  }
+  
   //----------------------------------------------------------------------
 
   public GenericWorkspaceMember getObj()
