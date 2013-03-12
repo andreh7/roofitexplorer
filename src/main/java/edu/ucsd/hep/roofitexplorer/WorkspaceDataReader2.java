@@ -271,12 +271,53 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
 
   //----------------------------------------------------------------------
 
+  private void readAdditionalRooRealVarData(String varname, RooRealVarData data) throws IOException
+  {
+      String cmd = "{ RooRealVar *obj = " + workspaceName + "->var(\"" + varname + "\"); " +
+        " cout " +
+        "<< obj->getVal() << \",\" " + 
+        
+        "<< obj->isConstant() " +
+        "<< endl; }";
+    
+    System.out.println("cmd=" + cmd);
+    String summary = rootRunner.getCommandOutput(cmd);
+    // split into lines as ROOT seems to insist to append a line
+    // with the last return value (e.g. "(class ostream)139784828968064" )
+    
+    // avoid having an empty first line due to a newline at the beginning...
+    summary = summary.trim();
+    
+    List<String> lines = AHUtils.splitToLines(summary);
+    
+    String line = lines.get(0);
+    
+    // System.out.println("line=" + line);
+    line = line.trim();
+    
+    String parts[] = line.split(",",2);
+    
+    // TODO: protect against bad variable names, object not found in the workspace
+    // (should not happen), badly formatted return value (wrong number of fields,
+    // unparseable double values)
+    
+    data.value = Double.parseDouble(parts[0]);
+    
+    data.isConstant = Integer.parseInt(parts[1]) != 0;
+    
+    
+  }
+  //----------------------------------------------------------------------
+  
   private void readSingleVariable(String varName) throws IOException
   {
     VerbosePrintOutput detailedData = GenericWorkspaceMember.getMemberVerboseData(rootRunner, workspaceName, varName);
 
     // assume they're all RooRealVar's
     RooRealVarData retval = new RooRealVarData(workspace, varName, "RooRealVar", detailedData);
+
+    this.readAdditionalRooRealVarData(varName, retval);
+    
     this.variables.add(retval);
     
   }
