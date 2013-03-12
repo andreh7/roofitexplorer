@@ -23,6 +23,8 @@ import edu.ucsd.hep.roofitexplorer.WorkspaceData;
  */
 public class RooRealVarData extends RooAbsRealData
 {
+  public Double value;
+  public Boolean isConstant;
 
   public RooRealVarData(WorkspaceData workspace, String varName, String className, VerbosePrintOutput detailedData)
   {
