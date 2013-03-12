@@ -427,8 +427,8 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
         {
           public void actionPerformed(ActionEvent ae)
           {
-            makeFrame("direct servers of " + member.getVarName(), member.getServers(),
-              listeners).setVisible(true);
+            makeInternalFrame("direct servers of " + member.getVarName(), member.getServers(),
+              listeners, getDesktop()).setVisible(true);
           }
         });
       }
