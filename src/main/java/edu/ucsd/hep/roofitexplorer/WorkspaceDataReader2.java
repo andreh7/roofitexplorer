@@ -119,7 +119,7 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
     {
       String line = lines.remove(0).trim();
 
-      System.out.println("line='" + line + "'");
+      // System.out.println("line='" + line + "'");
 
       if (line.isEmpty())
         continue;
