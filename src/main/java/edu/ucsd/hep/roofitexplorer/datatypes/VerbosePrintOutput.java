@@ -23,13 +23,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.io.Serializable;
 
 /**
  * contains information and associated helper methods for the 
  * output lines of Print("V") called on a workspace member
  * @author holzner
  */
-public class VerbosePrintOutput
+public class VerbosePrintOutput implements Serializable
 {
   //----------------------------------------------------------------------
   
@@ -149,7 +150,7 @@ public class VerbosePrintOutput
   }
   //----------------------------------------------------------------------
 
-  public static class ClientServerRecord
+  public static class ClientServerRecord implements Serializable
   {
     final String address;
     final String className;

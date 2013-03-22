@@ -21,12 +21,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.io.Serializable;
 
 /**
  * A list of workspace members with some additional functionality
  * @author holzner
  */
-public class WorkspaceMemberList implements Iterable<GenericWorkspaceMember>
+public class WorkspaceMemberList implements Iterable<GenericWorkspaceMember>, Serializable
 {
   private final List<GenericWorkspaceMember> members = new ArrayList<GenericWorkspaceMember>();
 

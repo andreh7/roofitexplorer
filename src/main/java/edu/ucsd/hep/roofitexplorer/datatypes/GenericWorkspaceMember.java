@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.io.Serializable;
 
 /**
  * Parent class of classes which represent members of RooFit workspaces.
@@ -33,7 +34,7 @@ import java.util.Set;
  * This is sort of equivalent to the RooAbsArg class ??
  * @author holzner
  */
-public class GenericWorkspaceMember
+public class GenericWorkspaceMember implements Serializable
 {
 
   //----------------------------------------------------------------------

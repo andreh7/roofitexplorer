@@ -23,6 +23,7 @@ import edu.ucsd.hep.rootrunnerutil.AHUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
@@ -32,7 +33,7 @@ import java.util.TreeSet;
  * Keeps information about a RooFit workspace
  * @author holzner
  */
-public class WorkspaceData
+public class WorkspaceData implements Serializable
 {
   private final String filename;
 
