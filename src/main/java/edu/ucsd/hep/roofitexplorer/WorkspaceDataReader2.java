@@ -110,8 +110,6 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
     // output into memory
     List<String> lines = AHUtils.splitToLines(summary);
 
-    List<String> thisGroup = new ArrayList<String>();
-
     // the output format of the above macro is ClassName,InstanceName
     // we assume that the class name does not have any commas in it
     // (but the instance name actually may have...)
