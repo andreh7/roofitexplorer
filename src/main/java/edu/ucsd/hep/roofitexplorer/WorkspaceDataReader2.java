@@ -93,6 +93,7 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
         "<< obj->IsA()->InheritsFrom(RooRealVar::Class()) << \",\" " +
         "<< obj->IsA()->InheritsFrom(RooAbsData::Class()) << \",\" " +
         "<< obj->IsA()->InheritsFrom(RooAbsReal::Class()) << \",\" " +
+        "<< obj->IsA()->InheritsFrom(RooAbsCategory::Class()) << \",\" " +
         
         "<< obj->GetName() " + 
         "<< endl; } }";
@@ -122,7 +123,7 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
       if (line.isEmpty())
         continue;
       
-      String parts[] = line.split(",",7);
+      String parts[] = line.split(",",8);
       
       String className = parts[0];
       boolean isAbsPdf = "1".equals(parts[1]);
@@ -130,8 +131,9 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
       boolean isRealVar = "1".equals(parts[3]);
       boolean isAbsData = "1".equals(parts[4]);
       boolean isAbsReal = "1".equals(parts[5]);
+      boolean isAbsCategory = "1".equals(parts[6]);
       
-      String varname = parts[6];
+      String varname = parts[7];
       
       // note the order of the following comparisons: almost everything is also 
       // a RooAbsReal so we check more specific types before
@@ -145,6 +147,8 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
         this.readSingleDataSet(varname, className);
       else if (isAbsReal)
         this.readSingleFunction(varname, className);
+      else if (isAbsCategory)
+        this.readSingleCategory(varname, className);
       else
         System.err.println("don't know what kind of type '" + varname + "' is, ignoring it");
       
@@ -347,13 +351,24 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
         
     VerbosePrintOutput detailedData = GenericWorkspaceMember.getMemberVerboseData(rootRunner, workspaceName, varName);
     
-    
     RooAbsRealData retval = RooAbsRealData.make(workspace, varName, className, detailedData);
     this.functions.add(retval);
     
 
   }
   
+  //----------------------------------------------------------------------
+  
+  private void readSingleCategory(String varName, String className) throws IOException
+  {
+    System.out.println("reading category " + varName);
+        
+    VerbosePrintOutput detailedData = GenericWorkspaceMember.getMemberVerboseData(rootRunner, workspaceName, varName);
+    
+    RooAbsRealData retval = RooAbsRealData.make(workspace, varName, className, detailedData);
+    this.functions.add(retval);
+    
+  }
   //----------------------------------------------------------------------
 
   private void readSingleRooConstVar(String varName) throws IOException
