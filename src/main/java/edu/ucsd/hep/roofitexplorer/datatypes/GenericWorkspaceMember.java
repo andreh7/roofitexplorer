@@ -58,6 +58,7 @@ public class GenericWorkspaceMember implements Serializable
    *  of the Print("V") call */
   private WorkspaceMemberList serversList;
   private WorkspaceMemberList clientsList;
+  private WorkspaceMemberList leafServersList;
 
 
   //----------------------------------------------------------------------
@@ -149,7 +150,56 @@ public class GenericWorkspaceMember implements Serializable
     // make a copy
     return new WorkspaceMemberList(serversList);
   }
+  
+  //----------------------------------------------------------------------
+  
+  /** @return servers (including indirect) which are leaves.
+   *  This can be useful to find out on which servers
+   *  e.g. a function depends (and if we can plot it as function
+   *  of one RooRealVar)
+   */
+  public WorkspaceMemberList getLeafServers()
+  {
+    if (this.leafServersList == null)
+    {
+      Set<GenericWorkspaceMember> toVisit = new HashSet<GenericWorkspaceMember>();
+      Set<GenericWorkspaceMember> visited = new HashSet<GenericWorkspaceMember>();
+      Set<GenericWorkspaceMember> leaves = new HashSet<GenericWorkspaceMember>();
+      
+      toVisit.addAll(this.getServers().getList());
+
+      while (! toVisit.isEmpty())
+      {
+        // get the first element
+        GenericWorkspaceMember member = toVisit.iterator().next();
+        
+        if (! visited.contains(member))
+        {
+          visited.add(member);
+          
+          WorkspaceMemberList memberServers = member.getServers();
+          
+          if (memberServers.isEmpty())
+            // it's a leaf
+            leaves.add(member);
+          else
+            // not a leaf, inspect the member's servers
+            toVisit.addAll(memberServers.getList());
+          
+        } // if not yet visited
+        
+        toVisit.remove(member);
+      }
+      
+       // get the objects on demand
+      leafServersList = new WorkspaceMemberList(leaves);
+    }
+    
+    // make a copy
+    return new WorkspaceMemberList(leafServersList);
+  }
    //----------------------------------------------------------------------
+
   
   /** get the 'parents' (those objects in which this object is used) */
   public WorkspaceMemberList getClients()
