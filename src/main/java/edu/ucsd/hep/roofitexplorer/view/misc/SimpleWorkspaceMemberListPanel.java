@@ -439,7 +439,7 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
     }
 
     //----------
-    // show leaf servers of servers
+    // show leaf servers
     //----------
     {
       menuItem = new JMenuItem("show leaf servers (including indirect)");
@@ -460,6 +460,7 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
       
       popupMenu.add(menuItem);
     }
+    //----------
 
     return popupMenu;
   }
