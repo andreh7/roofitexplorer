@@ -65,6 +65,7 @@ public class WorkspaceData implements Serializable
   
   //----------------------------------------------------------------------
 
+  /** @return the name of the workspace */
   public String getName()
   {
     return this.wsName;
