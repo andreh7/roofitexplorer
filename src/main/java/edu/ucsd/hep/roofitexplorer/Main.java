@@ -111,6 +111,8 @@ public class Main
   private WorkspaceData ws = null;
   private JFileChooser openRootFileChooser;
   
+  private ROOTRunner root_runner;
+  
   //----------------------------------------------------------------------
 
   private void processCommandLineOptions(String[] argv) throws IOException, CmdLineException
@@ -197,7 +199,7 @@ public class Main
     if (options.showRootTerminal)
       windowListener = new CommandDisplayPanel(null);
     
-    ROOTRunner root_runner = new ROOTRunnerImpl(
+    root_runner = new ROOTRunnerImpl(
             windowListener,null,
       
       // add a newline to avoid merging the root command with previous commands
@@ -502,7 +504,7 @@ public class Main
     //-----
 
     // SimpleWorkspaceMemberListPanel listPanel = new SimpleWorkspaceMemberListPanel();
-    WorkspaceMemberListWithFilterPanel listPanel = new WorkspaceMemberListWithFilterPanel();
+    WorkspaceMemberListWithFilterPanel listPanel = new WorkspaceMemberListWithFilterPanel(root_runner, ws.getName());
     
     listPanel.setFilterFactories(MemberFilterFactoryList.makeStandardFilterFactory());
     
