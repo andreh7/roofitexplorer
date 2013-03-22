@@ -19,6 +19,7 @@ import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListener;
 import edu.ucsd.hep.roofitexplorer.datatypes.WorkspaceMemberList;
 import edu.ucsd.hep.roofitexplorer.filters.MemberFilterFactoryList;
 import edu.ucsd.hep.roofitexplorer.filters.view.FilterListPanel;
+import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import javax.swing.JInternalFrame;
@@ -42,12 +43,12 @@ public class WorkspaceMemberListWithFilterPanel extends JPanel
 
   //----------------------------------------------------------------------
 
-  public WorkspaceMemberListWithFilterPanel()
+  public WorkspaceMemberListWithFilterPanel(ROOTRunner rootRunner, String workspaceName)
   {
     this.setLayout(new BorderLayout());
     
     this.filterListPanel = new FilterListPanel();
-    this.memberListPanel = new SimpleWorkspaceMemberListPanel();
+    this.memberListPanel = new SimpleWorkspaceMemberListPanel(rootRunner, workspaceName);
     
     // connect the memberListPanel to the filterListPanel
     // such that when the user changes the list of filters,
