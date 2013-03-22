@@ -19,10 +19,14 @@ import edu.ucsd.hep.roofitexplorer.ExcelWorkbookProducer;
 import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListener;
 import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListenerList;
 import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
+import edu.ucsd.hep.roofitexplorer.datatypes.RooAbsRealData;
+import edu.ucsd.hep.roofitexplorer.datatypes.RooRealVarData;
 import edu.ucsd.hep.roofitexplorer.datatypes.WorkspaceMemberList;
 import edu.ucsd.hep.roofitexplorer.filters.WorkspaceMemberFilter;
 import edu.ucsd.hep.roofitexplorer.view.textsearch.TextSearchRowFilterUtil;
+import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -36,8 +40,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
@@ -76,6 +82,10 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
   /** filter for workspace members */
   private WorkspaceMemberFilter memberFilter;
   
+  private final ROOTRunner rootRunner;
+
+  private final String workspaceName;
+
   //----------------------------------------
   // for searching through the table
   //----------------------------------------
@@ -84,11 +94,14 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
   private final TextSearchRowFilterUtil textSearchRowFilterUtil;
   private JLabel numItemsLabel;
   private final CombinedRowFilter combinedRowFilter;
-
+  
   //----------------------------------------------------------------------
 
-  public SimpleWorkspaceMemberListPanel()
+  public SimpleWorkspaceMemberListPanel(ROOTRunner rootRunner, String workspaceName)
   {
+    this.rootRunner = rootRunner;
+    this.workspaceName = workspaceName;
+    
     this.setLayout(new BorderLayout());
        
     this.add(makeTopPanel(),BorderLayout.NORTH);
@@ -229,32 +242,11 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
   }
   
   //----------------------------------------------------------------------
-
-  /** convenience method */
-  public static JFrame makeFrame(String title, WorkspaceMemberList members, WorkspaceMemberSelectionListenerList listeners)
-  {
-    SimpleWorkspaceMemberListPanel panel = new SimpleWorkspaceMemberListPanel();
-    panel.setData(members);
-    
-    // copy all the listeners 
-    if (listeners != null)
-    {
-      for (WorkspaceMemberSelectionListener listener : listeners)
-        panel.addMemberSelectionListener(listener);
-    }
-    
-    JFrame retval = panel.makeFrame(title);
-
-    return retval;
-  }
-
-  //----------------------------------------------------------------------
   
-  /** convenience method */
-  public static JInternalFrame makeInternalFrame(String title, WorkspaceMemberList members, 
-          WorkspaceMemberSelectionListenerList listeners, JDesktopPane desktop)
+  /** mostly used to open another window */
+  private JInternalFrame makeInternalFrame(String title, WorkspaceMemberList members)
   {
-    SimpleWorkspaceMemberListPanel panel = new SimpleWorkspaceMemberListPanel();
+    SimpleWorkspaceMemberListPanel panel = new SimpleWorkspaceMemberListPanel(this.rootRunner, this.workspaceName);
     panel.setData(members);
     
     // copy all the listeners 
@@ -266,15 +258,14 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
     
     JInternalFrame retval = panel.makeInternalFrame(title);
     
-    if (desktop != null)
-      desktop.add(retval);
+    getDesktop().add(retval);
     
     return retval;
   }
 
   //----------------------------------------------------------------------
 
-  public JInternalFrame makeInternalFrame(String title)
+  private static JInternalFrame makeInternalFrame(String title, Component panel)
   {
     JInternalFrame retval = new JInternalFrame(title,
             true, // resizable
@@ -282,12 +273,19 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
             true, // maximizable
             true // iconifiable
             );
-    retval.getContentPane().add(this);
+    retval.getContentPane().add(panel);
     retval.pack();
 
     retval.setSize(500, 500);
 
     return retval;
+  }
+  
+  //----------------------------------------------------------------------
+
+  public JInternalFrame makeInternalFrame(String title)
+  {
+    return makeInternalFrame(title, this);
   }
 
   //----------------------------------------------------------------------
@@ -405,8 +403,7 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
         {
           public void actionPerformed(ActionEvent ae)
           {
-            makeInternalFrame("direct clients of " + member.getVarName(), member.getClients(),
-              listeners, getDesktop()).setVisible(true);
+            makeInternalFrame("direct clients of " + member.getVarName(), member.getClients()).setVisible(true);
           }
         });
       }
@@ -427,8 +424,7 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
         {
           public void actionPerformed(ActionEvent ae)
           {
-            makeInternalFrame("direct servers of " + member.getVarName(), member.getServers(),
-              listeners, getDesktop()).setVisible(true);
+            makeInternalFrame("direct servers of " + member.getVarName(), member.getServers()).setVisible(true);
           }
         });
       }
@@ -450,8 +446,7 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
         {
           public void actionPerformed(ActionEvent ae)
           {
-            makeInternalFrame("leaf (including indirect) servers of " + member.getVarName(), member.getLeafServers(),
-              listeners, getDesktop()).setVisible(true);
+            makeInternalFrame("leaf (including indirect) servers of " + member.getVarName(), member.getLeafServers()).setVisible(true);
           }
         });
       }
@@ -461,11 +456,129 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
       popupMenu.add(menuItem);
     }
     //----------
-
+    // 1D plot
+    //----------
+    popupMenu.add(this.makePlottingMenuItem(member));
+    
+    
     return popupMenu;
   }
 
   //----------------------------------------------------------------------
+
+  private JMenuItem makePlottingMenuItem(final GenericWorkspaceMember member)
+  {
+    JMenuItem retval = new JMenuItem("plot");
+    retval.setEnabled(false);
+    
+    if (! (member instanceof RooAbsRealData))
+      // not inheriting from RooAbsReal, so we don't know how to plot it
+      return retval;
+    
+    System.out.println("IS a RooAbsReal");
+    
+    // if we can't run root anyway or the file is not opened in the
+    // root session, we also can't plot
+    if (rootRunner == null)
+      return retval;
+    
+    System.out.println("HERE B");
+
+    WorkspaceMemberList leafServers = member.getLeafServers();
+    
+    // for the moment, just include simple cases we know we can
+    // handle
+    
+    // count the number of non-const RooRealVar objects. If this
+    // is exactly one, we know how to do plotting
+    RooRealVarData plottingVar = null;
+    
+    for (GenericWorkspaceMember leafServer : leafServers)
+    {
+      if (! (leafServer instanceof RooAbsRealData))
+        continue;
+      
+      RooRealVarData realVar = (RooRealVarData) leafServer;
+      if (realVar.isConstant)
+        continue;
+      
+      // we've found a non-const RooRealVar
+      if (plottingVar != null)
+        // not the first one
+        return retval;
+      
+      plottingVar = realVar;
+    }
+    
+    if (plottingVar == null)
+      return retval;
+
+    //----------
+    // we know how to do a plot
+    //----------
+    
+    final RooRealVarData plottingVar2 = plottingVar;
+    
+    retval.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ae)
+      {
+        try
+        {
+          plot1D((RooAbsRealData) member, plottingVar2, getDesktop());
+        } catch (IOException ex)
+        {
+          //Logger.getLogger(SimpleWorkspaceMemberListPanel.class.getName()).log(Level.SEVERE, null, ex);
+          JOptionPane.showMessageDialog(null, "problem doing plotting: " + ex, "ERROR", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    });
+    
+    retval.setEnabled(true);
+    return retval;
+    
+  }
+  
+  //----------------------------------------------------------------------
+ 
+  /** runs ROOT to make a 1D plot of the given object to plot and
+   *  displays it in an internal frame */
+  private void plot1D(RooAbsRealData func, RooRealVarData xvariable, JDesktopPane desktop) throws IOException
+  {
+    File imageFile = File.createTempFile("rooFitExplorer",".png");
+    
+    String cmd = 
+      "{ RooRealVar *xvar = " + workspaceName + "->var(\"" + xvariable.getVarName() + "\");\n" +
+      "  RooPlot *frame = xvar->frame();\n" + 
+      "  " + workspaceName + "->function(\"" + func.getVarName() + "\")->plotOn(frame);\n" +
+      "  frame->Draw();\n" + 
+      "  gPad->SaveAs(\"" + imageFile.getAbsolutePath() + "\");\n" +
+      "}";
+   
+    // we actually ignore the return value
+    rootRunner.getCommandOutput(cmd);
+    
+    // create an internal frame displaying the png file
+    ImageIcon image = new ImageIcon(imageFile.getAbsolutePath());
+    JLabel imageLabel = new JLabel("", image, JLabel.CENTER);
+    JPanel imagePanel = new JPanel(new BorderLayout());
+    imagePanel.add(imageLabel, BorderLayout.CENTER );
+
+    JScrollPane scrollPane = new JScrollPane(imagePanel);
+    
+    JInternalFrame internalFrame = makeInternalFrame("plot of " + func.getVarName() + "(" + xvariable.getVarName() + ")", scrollPane);
+    internalFrame.setVisible(true);
+    
+    // it's not clear why we can't call getDesktop(..) here but need
+    // the desktop object passed from the popup menu
+    desktop.add(internalFrame);
+    internalFrame.toFront();
+    
+  }
+  
+  //----------------------------------------------------------------------
+
+  
 /*
   private JMenuBar makeTopMenuBar()
   {
