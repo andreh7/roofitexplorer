@@ -23,6 +23,7 @@ import edu.ucsd.hep.roofitexplorer.view.graph.GraphPanelAdapter;
 import edu.ucsd.hep.roofitexplorer.view.misc.AboutDialog;
 import edu.ucsd.hep.roofitexplorer.view.misc.BrowserPanel;
 import edu.ucsd.hep.roofitexplorer.view.misc.WorkspaceMemberListWithFilterPanel;
+import edu.ucsd.hep.rootrunnerutil.AHUtils;
 import edu.ucsd.hep.rootrunnerutil.PipeCommandRunnerListener;
 import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
 import edu.ucsd.hep.rootrunnerutil.ROOTRunnerImpl;
@@ -31,6 +32,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +75,7 @@ public class Main
   
   //----------------------------------------------------------------------
 
-  public static void main(String[] args) throws IOException, CmdLineException
+  public static void main(String[] args) throws IOException, CmdLineException, ClassNotFoundException
   {
     // enable assertions
     ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
@@ -130,7 +132,7 @@ public class Main
   
   //----------------------------------------------------------------------
   
-  private void run(String[] args) throws IOException, CmdLineException
+  private void run(String[] args) throws IOException, CmdLineException, ClassNotFoundException
   {
     checkOperatingSystem();
     checkROOTexecutable();
@@ -156,7 +158,7 @@ public class Main
 
   //----------------------------------------------------------------------
 
-  private void openRootFile(String fname, String workspaceName) throws IOException, MemberVerboseDataParseError
+  private void openRootFile(String fname, String workspaceName) throws IOException, MemberVerboseDataParseError, ClassNotFoundException
   {
     // check arguments given:
     //
@@ -232,28 +234,64 @@ public class Main
           return;
       }
       
-      
       // read a ROOT file
       GenericWorkspaceDataReader reader = GenericWorkspaceDataReader.makeReader(root_runner, fname, workspaceName);
 
       ws = reader.getWorkspace();
-
-      // serialize to a temporary file
-      // File tempfile = AHUtils.writeTextToTemporaryFile(ws.toXML(), "roofitworkspace", ".xml");
-      // System.out.println("wrote to " + tempfile.getAbsolutePath());
     }
+    else if (fname.endsWith(".xgz"))
+      // assume gzipped xml file
+      ws = WorkspaceData.readFromGzippedXMLfile(fname);
+    else if (fname.endsWith(".xstream"))
+      ws = WorkspaceData.readFromBinaryfile(fname);
+    else if (fname.endsWith(".obj"))
+      ws = WorkspaceData.readJavaSerializationfile(fname);
+    else if (fname.endsWith(".xml"))
+        ws = WorkspaceData.readFromXMLfile(fname);
     else
     {
-      // assume it's an XML file
-      
-    // read workspace from xml file (this is much faster than
-    // reading it from the ROOT file and thus speeds up development)
-      ws = WorkspaceData.readFromXMLfile(fname);
+      System.err.println("unknown extension in the input file name '" + fname +"', exiting.");
+      System.exit(1);
     }
 
-    //----------
+    System.out.println("done reading input file");
     
-    // print top nodes
+    //----------
+    // serialize to a file if requested to do so
+    //----------
+
+    if (options.saveFileName != null)
+    {
+      if (options.saveFileName.endsWith(".xstream"))
+      {
+       System.err.println("saving workspace to xstream file " + options.saveFileName);
+        ws.writeXMLToBinaryFile(options.saveFileName);
+      } else if (options.saveFileName.endsWith(".xgz"))
+      {
+        // gzipped xml file
+        System.err.println("saving workspace to gzipped xml file " + options.saveFileName);
+        ws.writeXMLToGzippedFile(options.saveFileName);
+      } else if (options.saveFileName.endsWith(".obj"))
+      {
+        System.err.println("saving workspace to java serialization file " + options.saveFileName);
+        ws.writeToJavaSerializationFile(options.saveFileName);
+      }else if  (options.saveFileName.endsWith(".xml"))
+      { 
+        // write xml uncompressed
+        System.err.println("saving workspace to xml file " + options.saveFileName);
+        ws.writeXMLToFile(options.saveFileName);
+      } else
+      {
+        System.err.println("unknown extension in the output file name '" + options.saveFileName +"', exiting.");
+        System.exit(1);
+      }
+      
+      // exit now
+      System.exit(0);
+    }    
+    //----------
+
+      // print top nodes
     // System.out.println("top nodes=" + ws.getMembers().filter(new TopLevelMembersFilter()));
     
       

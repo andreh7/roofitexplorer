@@ -16,18 +16,26 @@
 package edu.ucsd.hep.roofitexplorer;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.binary.BinaryStreamDriver;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
 import edu.ucsd.hep.roofitexplorer.datatypes.WorkspaceMemberList;
 import edu.ucsd.hep.rootrunnerutil.AHUtils;
-import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Keeps information about a RooFit workspace
@@ -98,15 +106,6 @@ public class WorkspaceData implements Serializable
 
   //----------------------------------------------------------------------
 
-  /** serialize to an XML file */
-  public void writeToXMLfile(String fname) throws FileNotFoundException
-  {
-    AHUtils.writeStringToFile(new File(fname), toXML());
-
-  }
-  
-  //----------------------------------------------------------------------
-
   /** deserializes from an XML file */
   public static WorkspaceData readFromXMLfile(String fname) throws IOException
   {
@@ -116,11 +115,112 @@ public class WorkspaceData implements Serializable
 
   //----------------------------------------------------------------------
 
+  public static WorkspaceData readFromGzippedXMLfile(String fname) throws IOException
+  {
+    XStream xstream = new XStream(new DomDriver());
+    return (WorkspaceData) xstream.fromXML(AHUtils.readGzippedFile(fname));
+  }
+
+  //----------------------------------------------------------------------
+
+  /** serializes to xml. Can easily run out of memory with medium to
+   *  large sizes workspaces.
+   */
   String toXML()
   {
     XStream xstream = new XStream(new DomDriver());
     return xstream.toXML(this);
   }
+  //----------------------------------------------------------------------
+  
+  void writeXMLToStream(OutputStream os) throws IOException
+  {
+    XStream xstream = new XStream(new DomDriver());
+    
+
+    // xstream.toXML(this, os);
+    
+    OutputStreamWriter writer = new OutputStreamWriter(os, Charset.forName("UTF-8"));
+    
+    // xstream does not produce an xml header, but xstream does not
+    // need one (see http://xstream.codehaus.org/faq.html#XML_write_XML_declaration
+
+    // produce an XML declaration ourselves
+    writer.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    
+    xstream.toXML(this, writer);
+    writer.flush();
+  }
+
+  //----------------------------------------------------------------------
+
+  /** serialize to an XML file */
+  void writeXMLToFile(String fname) throws IOException
+  {
+    writeXMLToStream(new FileOutputStream(fname));
+  }
+  
+  //----------------------------------------------------------------------
+
+  void writeXMLToGzippedFile(String fname) throws IOException
+  {
+    GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(fname));
+    writeXMLToStream(os);
+    
+    // looks like we need to make sure that this is closed,
+    // otherwise we may get an 'gzip: <FNAME>: unexpected end of file
+    os.close();
+  }
+  
+  //----------------------------------------------------------------------
+
+  /** serializes to an xstream binary file.
+   
+      TODO: should add compression as the files can be compressed 
+            very heavily.
+   */
+  public void writeXMLToBinaryFile(String fname) throws IOException
+  {
+    XStream xstream = new XStream(new BinaryStreamDriver());
+    xstream.toXML(this, new FileOutputStream(fname));
+  }
+  
+  //----------------------------------------------------------------------
+
+  public static WorkspaceData readFromBinaryfile(String fname) throws FileNotFoundException
+  {
+    XStream xstream = new XStream(new BinaryStreamDriver());
+    return (WorkspaceData) xstream.fromXML(new FileInputStream(fname));
+  }
+  
+  //----------------------------------------------------------------------
+
+  public void writeToJavaSerializationFile(String fname) throws IOException
+  {
+    FileOutputStream os = new FileOutputStream(fname);
+    ObjectOutputStream objOut = new ObjectOutputStream(os);
+    
+    objOut.writeObject(this);
+
+    objOut.close();
+    os.close();
+  }
+
+  //----------------------------------------------------------------------
+
+  public static WorkspaceData readJavaSerializationfile(String fname) throws IOException, ClassNotFoundException
+  {
+    FileInputStream is = new FileInputStream(fname);
+    ObjectInputStream objIn = new ObjectInputStream(is);
+    
+    WorkspaceData retval = (WorkspaceData) objIn.readObject();
+         
+    objIn.close();
+    is.close();
+    
+    return retval;
+  }
+
   //----------------------------------------------------------------------
 
   /** TODO: should make sure that no modifications happen to the
@@ -176,4 +276,7 @@ public class WorkspaceData implements Serializable
     }
   
   }
+  
+  //----------------------------------------------------------------------
+
 }

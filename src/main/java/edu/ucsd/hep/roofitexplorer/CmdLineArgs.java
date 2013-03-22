@@ -26,16 +26,36 @@ import org.kohsuke.args4j.Option;
  */
 public class CmdLineArgs
 {
+  //----------
+
   @Option(name = "--root-window",
           usage = "show a window with the communication to the ROOT process")
   boolean showRootTerminal = false;
 
+  //----------
+  
   @Option(name = "--lib",
           metaVar = "LIB",
           usage = "load the given shared object after ROOT startup. "+
           "This is typically used to load rootcint generated compiled dictionaries for custom data types " +
           "used in the workspace. Can be specified multiple times.")
   List<String> librariesToLoad = new ArrayList<String>();
+  
+  //----------
+  
+  @Option(name = "--save",
+          metaVar = "file.xgz",
+          usage = "read the given root file, serialize it as gzipped xml to the given file and exit." +
+                  "this can be useful to run remotely (e.g. where one has additional " +
+                  "libraries ROOT needs to load to know the objects in the workspace), then transfer " + 
+                  "the serialized file and run the GUI version locally. Note that when running with this " +
+                  "option, one can still be shown a dialog to select a workspace etc. " + 
+                  "The following extensions are supported: .xml , .xgz (gzipped xml), .xstream (xstream binary format), " + 
+                  ".obj (java serialization, not guaranteed to be compatible with future releases)"
+                  )
+  String saveFileName;
+
+  //----------
   
   // positional arguments                                                                                                     
   @Argument(index = 0)
