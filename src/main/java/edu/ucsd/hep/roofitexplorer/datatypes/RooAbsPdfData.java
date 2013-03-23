@@ -21,7 +21,7 @@ import edu.ucsd.hep.roofitexplorer.WorkspaceData;
  * Contains information about a RooFit pdf (RooAbsPdf)
  * @author holzner
  */
-public class RooAbsPdfData extends GenericWorkspaceMember
+public class RooAbsPdfData extends RooAbsRealData
 {
 
   public RooAbsPdfData(WorkspaceData workspace, String varName, String className, VerbosePrintOutput detailedData)
