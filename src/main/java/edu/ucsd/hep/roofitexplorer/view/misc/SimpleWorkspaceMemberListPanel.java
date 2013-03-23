@@ -465,24 +465,41 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
   }
 
   //----------------------------------------------------------------------
+  /** helper function to show a dialog box which explains why
+      a certain object can't be plotted */
+  private void addExplanationAction(JMenuItem menuItem, final String reason)
+  {
+    menuItem.setText("(" + menuItem.getText() + ")");
+
+    menuItem.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ae)
+      {
+        JOptionPane.showMessageDialog(null, reason, "", JOptionPane.INFORMATION_MESSAGE);
+      }
+    });
+  }  
+
+  //----------------------------------------------------------------------
 
   private JMenuItem makePlottingMenuItem(final GenericWorkspaceMember member)
   {
     JMenuItem retval = new JMenuItem("plot");
-    retval.setEnabled(false);
     
     if (! (member instanceof RooAbsRealData))
+    { 
       // not inheriting from RooAbsReal, so we don't know how to plot it
+      addExplanationAction(retval, member.getVarName() + " does not inherit from RooAbsReal");  
       return retval;
-    
-    System.out.println("IS a RooAbsReal");
-    
+    } 
+   
     // if we can't run root anyway or the file is not opened in the
     // root session, we also can't plot
     if (rootRunner == null)
+    {
+      addExplanationAction(retval, "No ROOT session running");
       return retval;
-    
-    System.out.println("HERE B");
+    }    
 
     WorkspaceMemberList leafServers = member.getLeafServers();
     
@@ -499,19 +516,27 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
         continue;
       
       RooRealVarData realVar = (RooRealVarData) leafServer;
-      if (realVar.isConstant)
-        continue;
+
+      // commented out for the moment
+      //if (realVar.isConstant)
+      //  continue;
       
       // we've found a non-const RooRealVar
       if (plottingVar != null)
+      { 
         // not the first one
+        addExplanationAction(retval, "More than one leaf RooRealVar found");
         return retval;
-      
+      }
+     
       plottingVar = realVar;
     }
     
     if (plottingVar == null)
+    { 
+      addExplanationAction(retval, "No leaf RooRealVar found");
       return retval;
+    }
 
     //----------
     // we know how to do a plot
