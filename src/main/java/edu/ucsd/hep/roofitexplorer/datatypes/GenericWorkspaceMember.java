@@ -20,13 +20,13 @@ import edu.ucsd.hep.roofitexplorer.WorkspaceData;
 import edu.ucsd.hep.roofitexplorer.datatypes.VerbosePrintOutput.ClientServerRecord;
 import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.io.Serializable;
 
 /**
  * Parent class of classes which represent members of RooFit workspaces.
