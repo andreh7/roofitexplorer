@@ -419,4 +419,11 @@ public class GenericWorkspaceMember implements Serializable
 
   //----------------------------------------------------------------------
 
+  public ROOTRunner getRootRunner()
+  {
+    return this.getWorkspace().getRootRunner();
+  }
+  
+  //----------------------------------------------------------------------
+
 }
