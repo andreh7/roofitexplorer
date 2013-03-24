@@ -41,6 +41,8 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
@@ -50,6 +52,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -482,6 +485,30 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
 
   //----------------------------------------------------------------------
 
+  private JMenuItem makeSinglePlottingMenuItem(final GenericWorkspaceMember function,
+        final RooRealVarData plottingVar)
+  {
+    JMenuItem retval = new JMenuItem("plot");
+
+    retval.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ae)
+      {
+        try
+        {
+          plot1D((RooAbsRealData) function, plottingVar, getDesktop());
+        } catch (IOException ex)
+        {
+          //Logger.getLogger(SimpleWorkspaceMemberListPanel.class.getName()).log(Level.SEVERE, null, ex);
+          JOptionPane.showMessageDialog(null, "problem doing plotting: " + ex, "ERROR", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    });
+    
+    return retval;
+  }
+  //----------------------------------------------------------------------
+
   private JMenuItem makePlottingMenuItem(final GenericWorkspaceMember member)
   {
     JMenuItem retval = new JMenuItem("plot");
@@ -508,11 +535,11 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
     
     // count the number of non-const RooRealVar objects. If this
     // is exactly one, we know how to do plotting
-    RooRealVarData plottingVar = null;
+    List<RooRealVarData> plottingVars = new ArrayList<RooRealVarData>();
     
     for (GenericWorkspaceMember leafServer : leafServers)
     {
-      if (! (leafServer instanceof RooAbsRealData))
+      if (! (leafServer instanceof RooRealVarData))
         continue;
       
       RooRealVarData realVar = (RooRealVarData) leafServer;
@@ -521,18 +548,12 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
       //if (realVar.isConstant)
       //  continue;
       
-      // we've found a non-const RooRealVar
-      if (plottingVar != null)
-      { 
-        // not the first one
-        addExplanationAction(retval, "More than one leaf RooRealVar found");
-        return retval;
-      }
-     
-      plottingVar = realVar;
+      // we've found a non-const RooRealVar. We now support
+      // plotting vs. any of the RooRealVars found
+      plottingVars.add(realVar);
     }
     
-    if (plottingVar == null)
+    if (plottingVars.isEmpty())
     { 
       addExplanationAction(retval, "No leaf RooRealVar found");
       return retval;
@@ -542,25 +563,20 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
     // we know how to do a plot
     //----------
     
-    final RooRealVarData plottingVar2 = plottingVar;
+    if (plottingVars.size() == 1)
+      // just one variable, add a menu item directly
+      return this.makeSinglePlottingMenuItem(member, plottingVars.get(0));
     
-    retval.addActionListener(new ActionListener()
+    // more than one variable to plot against, create a submenu
+    JMenu retval2 = new JMenu("plot vs");
+    for (RooRealVarData plottingVar : plottingVars)
     {
-      public void actionPerformed(ActionEvent ae)
-      {
-        try
-        {
-          plot1D((RooAbsRealData) member, plottingVar2, getDesktop());
-        } catch (IOException ex)
-        {
-          //Logger.getLogger(SimpleWorkspaceMemberListPanel.class.getName()).log(Level.SEVERE, null, ex);
-          JOptionPane.showMessageDialog(null, "problem doing plotting: " + ex, "ERROR", JOptionPane.ERROR_MESSAGE);
-        }
-      }
-    });
+      JMenuItem item = makeSinglePlottingMenuItem(member, plottingVar);
+      item.setText(plottingVar.getVarName());
+      retval2.add(item);
+    }
     
-    retval.setEnabled(true);
-    return retval;
+    return retval2;
     
   }
   
