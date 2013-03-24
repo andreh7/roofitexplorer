@@ -268,7 +268,8 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
 
   //----------------------------------------------------------------------
 
-  private static JInternalFrame makeInternalFrame(String title, Component panel)
+  /** TODO: this should go into a different class */
+  public static JInternalFrame makeInternalFrame(String title, Component panel)
   {
     JInternalFrame retval = new JInternalFrame(title,
             true, // resizable
@@ -586,35 +587,16 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
    *  displays it in an internal frame */
   private void plot1D(RooAbsRealData func, RooRealVarData xvariable, JDesktopPane desktop) throws IOException
   {
-    File imageFile = File.createTempFile("rooFitExplorer",".png");
-    
-    String cmd = 
-      "{ RooRealVar *xvar = " + workspaceName + "->var(\"" + xvariable.getVarName() + "\");\n" +
-      "  RooPlot *frame = xvar->frame();\n" + 
-      "  " + workspaceName + "->function(\"" + func.getVarName() + "\")->plotOn(frame);\n" +
-      "  frame->Draw();\n" + 
-      "  gPad->SaveAs(\"" + imageFile.getAbsolutePath() + "\");\n" +
-      "}";
-   
-    // we actually ignore the return value
-    rootRunner.getCommandOutput(cmd);
-    
-    // create an internal frame displaying the png file
-    ImageIcon image = new ImageIcon(imageFile.getAbsolutePath());
-    JLabel imageLabel = new JLabel("", image, JLabel.CENTER);
-    JPanel imagePanel = new JPanel(new BorderLayout());
-    imagePanel.add(imageLabel, BorderLayout.CENTER );
+        // create an internal frame displaying the png file
 
-    JScrollPane scrollPane = new JScrollPane(imagePanel);
-    
-    JInternalFrame internalFrame = makeInternalFrame("plot of " + func.getVarName() + "(" + xvariable.getVarName() + ")", scrollPane);
+    OneDimPlotPanel plotPanel = new OneDimPlotPanel(rootRunner, workspaceName, func, xvariable);
+    JInternalFrame internalFrame = plotPanel.makeInternalFrame();
     internalFrame.setVisible(true);
     
     // it's not clear why we can't call getDesktop(..) here but need
     // the desktop object passed from the popup menu
     desktop.add(internalFrame);
     internalFrame.toFront();
-    
   }
   
   //----------------------------------------------------------------------
