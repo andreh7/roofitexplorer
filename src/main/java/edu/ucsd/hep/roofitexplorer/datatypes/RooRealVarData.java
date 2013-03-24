@@ -16,6 +16,8 @@
 package edu.ucsd.hep.roofitexplorer.datatypes;
 
 import edu.ucsd.hep.roofitexplorer.WorkspaceData;
+import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
+import java.io.IOException;
 
 /**
  *
@@ -26,9 +28,37 @@ public class RooRealVarData extends RooAbsRealData
   public Double value;
   public Boolean isConstant;
 
+  //----------------------------------------------------------------------
+
   public RooRealVarData(WorkspaceData workspace, String varName, String className, VerbosePrintOutput detailedData)
   {
     super(workspace, varName, className, detailedData);
   }
+
+  //----------------------------------------------------------------------
+
+  /** will update the value also in the corresponding object in the ROOT session
+   *  and notify the listeners about the modification */
+  public void setValue(Double doubleValue) throws IOException
+  {
+    ROOTRunner rootRunner = this.getRootRunner();
+    String workspaceName = this.getWorkspace().getName();
+            
+    String cmd = 
+      "{ RooRealVar *xvar = " + workspaceName + "->var(\"" + getVarName() + "\");\n" +
+      "  xvar->setVal(" + doubleValue + ");\n" +
+      "}\n";
+      
+    // we actually ignore the return value
+    rootRunner.getCommandOutput(cmd);
+    
+    this.value = doubleValue;
+    
+    // notify listeners of this object
+    this.getWorkspace().getModificationDispatcher().modified(this);
   
+  }
+  
+  //----------------------------------------------------------------------
+
 }
