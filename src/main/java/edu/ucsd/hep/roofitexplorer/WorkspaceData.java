@@ -21,6 +21,7 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
 import edu.ucsd.hep.roofitexplorer.datatypes.WorkspaceMemberList;
 import edu.ucsd.hep.rootrunnerutil.AHUtils;
+import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -55,12 +56,22 @@ public class WorkspaceData implements Serializable
   private Map<String, GenericWorkspaceMember> membersByName = new HashMap<String, GenericWorkspaceMember>();
 
   private WorkspaceMemberList membersList = new WorkspaceMemberList();
+  
+  // TODO: this should go into a parallel class as this is 'augmented'
+  // information, not found in the RooWorkspace
+  private transient WorkspaceMemberModificationDispatcher modificationDispatcher = new WorkspaceMemberModificationDispatcher();
+  
+  private transient final ROOTRunner rootRunner;
+  
   //----------------------------------------------------------------------
 
-  WorkspaceData(String filename, String wsName)
+  /** @param rootRunner is needed for interactivity (e.g. setting
+   *  values of RooRealVars etc.) */
+  WorkspaceData(String filename, String wsName, ROOTRunner rootRunner)
   {
     this.wsName = wsName;
     this.filename = filename;
+    this.rootRunner = rootRunner;
   }
   
   //----------------------------------------------------------------------
@@ -235,7 +246,7 @@ public class WorkspaceData implements Serializable
   /** this is for testing only (where we in some cases need an empty workspace) */
   public static WorkspaceData makeDummyWorkspace()
   {
-    return new WorkspaceData("/dev/null","dummyws");
+    return new WorkspaceData("/dev/null","dummyws", null);
   }
 
   //----------------------------------------------------------------------
@@ -276,6 +287,20 @@ public class WorkspaceData implements Serializable
       
     }
   
+  }
+  
+  //----------------------------------------------------------------------
+
+  public WorkspaceMemberModificationDispatcher getModificationDispatcher()
+  {
+    return modificationDispatcher;
+  }
+  
+  //----------------------------------------------------------------------
+
+  public ROOTRunner getRootRunner()
+  {
+    return rootRunner;
   }
   
   //----------------------------------------------------------------------
