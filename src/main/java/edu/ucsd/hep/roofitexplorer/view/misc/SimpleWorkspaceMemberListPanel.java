@@ -463,7 +463,11 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
     // 1D plot
     //----------
     popupMenu.add(this.makePlottingMenuItem(member));
-    
+    //----------
+    // modifying RooRealVars
+    //----------
+    if (member instanceof RooRealVarData)
+      addRooRealVarMenuItems(popupMenu, (RooRealVarData) member);
     
     return popupMenu;
   }
@@ -701,5 +705,51 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
   }
 
   //----------------------------------------------------------------------
+
+  /** adds some RooRealVar specific menu items */
+  private void addRooRealVarMenuItems(JPopupMenu popupMenu, final RooRealVarData var)
+  {
+    JMenuItem menuItem = new JMenuItem("set value...");
+
+    // check if we have a ROOTrunner
+    if (var.getRootRunner() == null)
+      menuItem.setEnabled(false);
+    else
+    {
+      menuItem.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent ae)
+        {
+          for (;;)
+          {
+            String value = JOptionPane.showInputDialog("Enter a new value for RooRealVar " + var.getVarName() + ":");
+
+            // from http://stackoverflow.com/a/1215466/288875: returning null means cancel
+            if (value == null)
+              return;
+
+            // try to convert this to a double
+            try
+            {
+              Double doubleValue = Double.parseDouble(value);
+              var.setValue(doubleValue);
+
+              return;
+
+            } catch (NumberFormatException ex)
+            {
+              JOptionPane.showMessageDialog(null, "Illegal floating point value " + value,
+                      "ERROR", JOptionPane.ERROR_MESSAGE);
+            }
+
+
+          }
+        }
+      });
+    }
+    popupMenu.add(menuItem);
+  }
+  //----------------------------------------------------------------------
+
   
 }
