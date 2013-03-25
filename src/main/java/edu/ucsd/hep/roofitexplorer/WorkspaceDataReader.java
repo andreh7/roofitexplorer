@@ -61,7 +61,7 @@ public class WorkspaceDataReader extends GenericWorkspaceDataReader
   {
     this.rootRunner = rootRunner;
     this.workspaceName = workspaceName;
-    this.workspace = new WorkspaceData(fname, workspaceName);
+    this.workspace = new WorkspaceData(fname, workspaceName, rootRunner);
     readSummary();
     
     if (Parameters.addMissingServerClientLinks)
