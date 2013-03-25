@@ -15,7 +15,8 @@
  */
 package edu.ucsd.hep.roofitexplorer.view.misc;
 
-import com.sun.tools.example.debug.bdi.Utils;
+import edu.ucsd.hep.roofitexplorer.WorkspaceMemberModifiedListener;
+import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
 import edu.ucsd.hep.roofitexplorer.datatypes.RooAbsRealData;
 import edu.ucsd.hep.roofitexplorer.datatypes.RooRealVarData;
 import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -43,7 +45,7 @@ public class OneDimPlotPanel extends JPanel
   
   //----------------------------------------------------------------------
 
-  public OneDimPlotPanel(ROOTRunner rootRunner, String workspaceName, RooAbsRealData func,
+  public OneDimPlotPanel(ROOTRunner rootRunner, String workspaceName, final RooAbsRealData func,
           RooRealVarData xvariable) throws IOException
   {
     // TODO: if we ever wanted to serialize this, how would we 
@@ -67,11 +69,31 @@ public class OneDimPlotPanel extends JPanel
     add(scrollPane);
     
     this.updatePlot();
+  
+    // request a notification if the corresponding function is modified
+    
+    WorkspaceMemberModifiedListener listener = new WorkspaceMemberModifiedListener(){
+
+      public void modifed(GenericWorkspaceMember member)
+      {
+        try
+        {
+          // redraw the plot using ROOT
+          updatePlot();
+        } catch (IOException ex)
+        {
+          //Logger.getLogger(OneDimPlotPanel.class.getName()).log(Level.SEVERE, null, ex);
+          JOptionPane.showMessageDialog(null, "failed to update plot for function " + func.getVarName(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    };
+      
+    func.getWorkspace().getModificationDispatcher().addListener(listener, func);
   }
   
   //----------------------------------------------------------------------
 
-  public void updatePlot() throws IOException
+  public final void updatePlot() throws IOException
   {
     File imageFile = File.createTempFile("rooFitExplorer",".png");
     
