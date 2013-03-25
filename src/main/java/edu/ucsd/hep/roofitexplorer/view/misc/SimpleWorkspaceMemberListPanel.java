@@ -740,6 +740,11 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
             {
               JOptionPane.showMessageDialog(null, "Illegal floating point value " + value,
                       "ERROR", JOptionPane.ERROR_MESSAGE);
+            } catch (IOException ex)
+            {
+              //Logger.getLogger(SimpleWorkspaceMemberListPanel.class.getName()).log(Level.SEVERE, null, ex);
+              JOptionPane.showMessageDialog(null, "Error setting new value: " + ex,
+                      "ERROR", JOptionPane.ERROR_MESSAGE);
             }
 
 
