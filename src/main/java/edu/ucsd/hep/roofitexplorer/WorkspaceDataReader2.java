@@ -282,7 +282,7 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
         "<< obj->isConstant() " +
         "<< endl; }";
     
-    System.out.println("cmd=" + cmd);
+    // System.out.println("cmd=" + cmd);
     String summary = rootRunner.getCommandOutput(cmd);
     // split into lines as ROOT seems to insist to append a line
     // with the last return value (e.g. "(class ostream)139784828968064" )
