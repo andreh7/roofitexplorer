@@ -61,4 +61,11 @@ public class RooRealVarData extends RooAbsRealData
   
   //----------------------------------------------------------------------
 
+  public Double getValue()
+  {
+    return value;
+  }
+
+  //----------------------------------------------------------------------
+
 }
