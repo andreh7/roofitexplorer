@@ -20,6 +20,7 @@ import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListener;
 import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListenerList;
 import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
 import edu.ucsd.hep.roofitexplorer.datatypes.RooAbsRealData;
+import edu.ucsd.hep.roofitexplorer.datatypes.RooFormulaVarData;
 import edu.ucsd.hep.roofitexplorer.datatypes.RooRealVarData;
 import edu.ucsd.hep.roofitexplorer.datatypes.WorkspaceMemberList;
 import edu.ucsd.hep.roofitexplorer.filters.WorkspaceMemberFilter;
@@ -45,7 +46,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
@@ -463,6 +463,34 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
     // 1D plot
     //----------
     popupMenu.add(this.makePlottingMenuItem(member));
+    
+    //----------
+    // show the output of Print("V")
+    //----------
+    {
+      menuItem = new JMenuItem("output of Print(\"V\")");
+      
+      menuItem.addActionListener(new ActionListener()
+        {
+          public void actionPerformed(ActionEvent ae)
+          {
+            JInternalFrame frame = SimpleTextDisplayPanel.makeInternalFrame("Print(\"V\") output of " + member.getVarName(), 
+                                   member.getDetailedData().getOriginalOutput());
+            frame.setVisible(true);
+            getDesktop().add(frame);
+            frame.toFront();
+          }
+       });
+      
+      popupMenu.add(menuItem);
+    }
+  
+    //----------
+    // RooFormulaVar specific menu items
+    //----------
+    if (member instanceof RooFormulaVarData)
+      addRooFormulaVarMenuItems(popupMenu, (RooFormulaVarData) member);
+    
     //----------
     // modifying RooRealVars
     //----------
@@ -722,7 +750,8 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
         {
           for (;;)
           {
-            String value = JOptionPane.showInputDialog("Enter a new value for RooRealVar " + var.getVarName() + ":");
+            String value = JOptionPane.showInputDialog("Enter a new value for RooRealVar " + var.getVarName() + 
+              "(current value is " + var.getValue() + "):");
 
             // from http://stackoverflow.com/a/1215466/288875: returning null means cancel
             if (value == null)
@@ -756,5 +785,49 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
   }
   //----------------------------------------------------------------------
 
+  /** adds some RooFormulatVar specific menu items */
+  private void addRooFormulaVarMenuItems(JPopupMenu popupMenu, final RooFormulaVarData var)
+  {
+    JMenuItem menuItem;
+    
+    //----------
+    // expression with names of servers inserted
+    // for RooFormulaVars
+    //----------
+
+    menuItem = new JMenuItem("verbose formula");
+
+    menuItem.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ae)
+      {
+        JInternalFrame frame = SimpleTextDisplayPanel.makeInternalFrame("Verbose formula of " + var.getVarName(), 
+                                     var.getExpandedFormulaTemplate());
+            frame.setVisible(true);
+            getDesktop().add(frame);
+            frame.toFront();
+      }
+    });
+      
+    popupMenu.add(menuItem);
+    
+    //----------
+
+    menuItem = new JMenuItem("copy raw formula to clipboard");
+      
+    menuItem.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ae)
+      {
+        Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+        StringSelection sel = new StringSelection(var.getFormulaTemplate());
+        cb.setContents(sel, null);
+      }
+    });
+      
+    popupMenu.add(menuItem);
   
+  }
+  //----------------------------------------------------------------------
+
 }
