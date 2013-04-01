@@ -44,6 +44,7 @@ public class SimpleTextDisplayPanel extends JPanel
     setLayout(new BorderLayout());
     
     textArea = new JTextArea();
+    textArea.setEditable(false);
     textArea.setFont(new java.awt.Font("Monospaced", 0, 13));
 
     add(new JScrollPane(textArea));
@@ -89,7 +90,7 @@ public class SimpleTextDisplayPanel extends JPanel
   }
 
   //----------------------------------------------------------------------
- public JInternalFrame makeInternalFrame(String title)
+  public static JInternalFrame makeInternalFrame(String title, String textContent)
   {
     JInternalFrame retval = new JInternalFrame(title,
             true, // resizable
@@ -97,7 +98,11 @@ public class SimpleTextDisplayPanel extends JPanel
             true, // maximizable
             true // iconifiable
             );
-    retval.getContentPane().add(this);
+    
+    SimpleTextDisplayPanel panel = new SimpleTextDisplayPanel();
+    panel.setText(textContent);
+    
+    retval.getContentPane().add(panel);
     retval.pack();
 
     retval.setSize(500, 500);
