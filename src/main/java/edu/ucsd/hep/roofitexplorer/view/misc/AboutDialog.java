@@ -122,6 +122,11 @@ public class AboutDialog extends JDialog
     new String[]{ "Macify", 
                   "http://simplericity.org/macify/", 
                   "Apache License 2.0"},
+
+    // used at top level
+    new String[]{ "ini4j", 
+                  "http://ini4j.sourceforge.net/", 
+                  "Apache License 2.0"},
     
     
   };

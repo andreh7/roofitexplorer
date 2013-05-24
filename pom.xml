@@ -93,6 +93,12 @@
       <artifactId>macify</artifactId>
       <version>1.6</version>
     </dependency>
+    <dependency>
+      <groupId>org.ini4j</groupId>
+      <artifactId>ini4j</artifactId>
+      <version>0.5.2</version>
+      <classifier>jdk14</classifier>
+    </dependency>
   </dependencies>
   
   
