@@ -26,9 +26,6 @@ public class UserProfileData
   /** commands to be executed before starting the ROOT session */
   private String preRootShellCommands = "";
 
-  /** the base directory of the ROOT installation */
-  private String rootSys = "";
-  
   //----------------------------------------------------------------------
   public String getPreRootShellCommands()
   {
@@ -42,18 +39,6 @@ public class UserProfileData
     this.preRootShellCommands = preRootShellCommands;
   }
 
-  //----------------------------------------------------------------------
-
-  public String getRootSys()
-  {
-    return rootSys;
-  }
-  //----------------------------------------------------------------------
-
-  public void setRootSys(String rootSys)
-  {
-    this.rootSys = rootSys;
-  }
   //----------------------------------------------------------------------
 
 }
