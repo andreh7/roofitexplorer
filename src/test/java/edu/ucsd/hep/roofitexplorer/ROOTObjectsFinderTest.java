@@ -180,7 +180,7 @@ public class ROOTObjectsFinderTest
     ROOTRunner rootRunner = new ROOTRunnerImpl(
             (PipeCommandRunnerListener)null,null,
             "",
-      null);
+      null, null);
     
     
     rootRunner.writeLine("gSystem->ResetSignals();");
