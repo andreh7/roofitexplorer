@@ -197,14 +197,18 @@ public class Main
     // start a ROOT process to look at the file
     PipeCommandRunnerListener windowListener = null;
     if (options.showRootTerminal)
-      windowListener = new CommandDisplayPanel(null);
-    
+    {
+      CommandDisplayPanel panel = new CommandDisplayPanel(null);
+      panel.makeFrame().setVisible(true);
+      windowListener = panel;
+    }
     root_runner = new ROOTRunnerImpl(
             windowListener,null,
       
       // add a newline to avoid merging the root command with previous commands
       this.userProfileData.getPreRootShellCommands() + "\n",
-      null);
+      null,
+      this.userProfileData.getRootCmd());
         
     // disable special ROOT signal handlers
     root_runner.writeLine("gSystem->ResetSignals();");
