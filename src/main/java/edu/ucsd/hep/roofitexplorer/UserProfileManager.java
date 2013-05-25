@@ -15,11 +15,7 @@
  */
 package edu.ucsd.hep.roofitexplorer;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
-import edu.ucsd.hep.rootrunnerutil.AHUtils;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 /**
@@ -56,9 +52,9 @@ public class UserProfileManager
   
   //----------------------------------------------------------------------
 
-  private static File getUserProfileAbsolutePath(String profileName)
+  private static File getUserProfileAbsolutePath(String profileName, String suffix)
   {
-     return new File(getUserProfileDirectory().getAbsolutePath() + File.separatorChar + profileName + ".xml");
+     return new File(getUserProfileDirectory().getAbsolutePath() + File.separatorChar + profileName + suffix);
   }
   
   //----------------------------------------------------------------------
@@ -66,15 +62,15 @@ public class UserProfileManager
   /** @return the given profile or a default (empty) if it does not exist */
   public static UserProfileData getProfile(String profileName) throws IOException
   {
-    File path = getUserProfileAbsolutePath(profileName);
+    File path = getUserProfileAbsolutePath(profileName, ".ini");
+    
+    // System.err.println("trying to read initialization file " + path);
     
     if (! path.exists())
       // return a default profile
       return new UserProfileData();
     
-    // read (deserialize) the profile
-    XStream xstream = new XStream(new DomDriver());
-    return (UserProfileData) xstream.fromXML(AHUtils.readFile(path));
+    return UserProfileData.readFromIniFile(path);
   }
   
   //----------------------------------------------------------------------
@@ -84,20 +80,18 @@ public class UserProfileManager
    * @param profileName
    * @param profileData 
    */
-  public static void writeProfile(String profileName, UserProfileData profileData) throws FileNotFoundException
+  public static void writeProfile(String profileName, UserProfileData profileData) throws IOException
   {
     ensureUserProfileDirectoryExists();
     
-    XStream xstream = new XStream(new DomDriver());
-    String xmlData = xstream.toXML(profileData);
-
-    AHUtils.writeStringToFile(getUserProfileAbsolutePath(profileName), xmlData);
+    profileData.writeToIniFile(getUserProfileAbsolutePath(profileName, ".ini"));
+    
   }
   
   //----------------------------------------------------------------------
   public static boolean profileExists(String profileName)
   {
-    return getUserProfileAbsolutePath(profileName).exists();
+    return getUserProfileAbsolutePath(profileName, ".ini").exists();
   }
   
   //----------------------------------------------------------------------
