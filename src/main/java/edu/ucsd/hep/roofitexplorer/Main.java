@@ -141,8 +141,10 @@ public class Main
     
     processCommandLineOptions(args);
       
-    // get the default user profile
-    userProfileData = UserProfileManager.getProfile("default");
+    // get the selected user profile
+    // this will throw an exception if the profile does not exist
+    // (and is not the default profile)
+    userProfileData = UserProfileManager.getProfile(options.profileName);
     
     // perform some checks:
     //  - check that that the specified ROOT installation actually exists
