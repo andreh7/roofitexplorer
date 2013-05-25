@@ -57,6 +57,16 @@ public class CmdLineArgs
 
   //----------
   
+  @Option(name = "-p",
+          metaVar = "profile",
+          usage = "name of profile to load at startup (default is '" + UserProfileManager.defaultProfileName + "'). This is the name (without the .ini" + 
+                  "extension in the directory ~/.roofitexplorer/profiles/ on Unix/OSX"
+          )
+  String profileName = UserProfileManager.defaultProfileName;
+  
+  //----------
+  
+  
   // positional arguments                                                                                                     
   @Argument(index = 0)
   String rootInputFname;
