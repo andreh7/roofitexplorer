@@ -66,7 +66,9 @@ public class ToXMLConverter
     
     
     // start a ROOT process to look at the file
+    // TODO: start ROOT with user configurable parameters
     ROOTRunner root_runner = new ROOTRunnerImpl((List<PipeCommandRunnerListener>)null,null,
+      null,
       null,
       null);
         
