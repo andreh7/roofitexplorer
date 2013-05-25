@@ -25,6 +25,8 @@ import java.io.IOException;
 public class UserProfileManager
 {
 
+  public static final String defaultProfileName = "default";  
+  
   //----------------------------------------------------------------------
 
   /** @return the directory where the user profiles are stored */
@@ -67,9 +69,14 @@ public class UserProfileManager
     // System.err.println("trying to read initialization file " + path);
     
     if (! path.exists())
-      // return a default profile
-      return new UserProfileData();
+    {
+      // return a default profile if we looked for the default profile
+      if (profileName.equals(defaultProfileName))
+        return new UserProfileData();
+      else
+        throw new Error("could not read user profile '" + profileName + "'");
     
+    }
     return UserProfileData.readFromIniFile(path);
   }
   
