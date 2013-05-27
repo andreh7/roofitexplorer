@@ -48,6 +48,13 @@ public class UserProfileData
   private String rootCmd = "root";
   
   
+  
+  /** command to transfer a remote file locally */
+  private String transferRemoteFileToLocalCmd;
+  
+  /** command to create a temporary file (e.g. on a remote machine). */
+  private String createTempFileCmd;
+  
   //----------------------------------------------------------------------
   public String getPreRootShellCommands()
   {
@@ -86,6 +93,8 @@ public class UserProfileData
     {
       retval.preRootShellCommands = section.get("preRootShellCommands","");
       retval.rootCmd = section.get("rootCmd","root");
+      retval.transferRemoteFileToLocalCmd = section.get("transferRemoteFileToLocalCmd", (String)null);
+      retval.createTempFileCmd = section.get("createTempFileCmd", (String) null);
     }
     
     return retval;
@@ -117,10 +126,30 @@ public class UserProfileData
   {
     Wini ini = new Wini(file);
 
-    ini.put("ROOT","preRootShellCommands", preRootShellCommands);
-  
+    // TODO: what happens to null values ?
+    ini.put("ROOT", "preRootShellCommands", preRootShellCommands);
+    ini.put("ROOT", "rootCmd", rootCmd);
+    ini.put("ROOT", "transferRemoteFileToLocalCmd", transferRemoteFileToLocalCmd);
+    ini.put("ROOT", "createTempFileCmd", createTempFileCmd);
+    
     ini.store();
   }
+  
   //----------------------------------------------------------------------
 
+  public String getTransferRemoteFileToLocalCmd()
+  {
+    return transferRemoteFileToLocalCmd;
+  }
+
+  //----------------------------------------------------------------------
+
+  public String getCreateTempFileCmd()
+  {
+    return createTempFileCmd;
+  }
+  
+  //----------------------------------------------------------------------
+
+  
 }
