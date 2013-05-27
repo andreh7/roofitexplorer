@@ -95,20 +95,22 @@ public class OneDimPlotPanel extends JPanel
 
   public final void updatePlot() throws IOException
   {
-    File imageFile = File.createTempFile("rooFitExplorer",".png");
+    String imageFname = rootRunner.createTempFile("rooFitExplorer",".png");
     
     String cmd = 
       "{ RooRealVar *xvar = " + workspaceName + "->var(\"" + xvariable.getVarName() + "\");\n" +
       "  RooPlot *frame = xvar->frame();\n" + 
       "  " + workspaceName + "->function(\"" + func.getVarName() + "\")->plotOn(frame);\n" +
       "  frame->Draw();\n" + 
-      "  gPad->SaveAs(\"" + imageFile.getAbsolutePath() + "\");\n" +
+      "  gPad->SaveAs(\"" + imageFname + "\");\n" +
       "}";
    
     // we actually ignore the return value
     rootRunner.getCommandOutput(cmd);
-
-    this.imageLabel.setIcon(new ImageIcon(imageFile.getAbsolutePath()));
+    
+    byte[] imageData = rootRunner.readFile(imageFname);
+    
+    this.imageLabel.setIcon(new ImageIcon(imageData));
     
     // clear the text, otherwise it is displayed next to the image
     this.imageLabel.setText(""); 
