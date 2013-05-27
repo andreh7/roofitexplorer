@@ -74,7 +74,7 @@ public class UserProfileManager
       if (profileName.equals(defaultProfileName))
         return new UserProfileData();
       else
-        throw new Error("could not read user profile '" + profileName + "'");
+        throw new Error("could not read user profile '" + profileName + "' (file " + path.getAbsolutePath() + " does not exist)");
     
     }
     return UserProfileData.readFromIniFile(path);
