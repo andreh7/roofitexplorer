@@ -204,14 +204,21 @@ public class Main
       panel.makeFrame().setVisible(true);
       windowListener = panel;
     }
-    root_runner = new ROOTRunnerImpl(
-            windowListener,null,
+    {
+      ROOTRunnerImpl rootRunnerImpl = new ROOTRunnerImpl(
+                           windowListener,null,
+                     
+                     // add a newline to avoid merging the root command with previous commands
+                     this.userProfileData.getPreRootShellCommands() + "\n",
+                     null,
+                     this.userProfileData.getRootCmd());
+      root_runner = rootRunnerImpl;  
       
-      // add a newline to avoid merging the root command with previous commands
-      this.userProfileData.getPreRootShellCommands() + "\n",
-      null,
-      this.userProfileData.getRootCmd());
-        
+    // set some parameters
+    rootRunnerImpl.setTransferRemoteFileToLocalCmd(userProfileData.getTransferRemoteFileToLocalCmd());
+    rootRunnerImpl.setCreateTempFileCmd(userProfileData.getCreateTempFileCmd());
+    }
+    
     // disable special ROOT signal handlers
     root_runner.writeLine("gSystem->ResetSignals();");
     
