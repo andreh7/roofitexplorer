@@ -128,6 +128,17 @@ public class AboutDialog extends JDialog
                   "http://ini4j.sourceforge.net/", 
                   "Apache License 2.0"},
     
+    // used by ROOTRunnerUtil
+    new String[]{ "StringTemplate", // 3.2.1 
+                  "http://www.stringtemplate.org/", 
+                  "BSD License"},
+    
+    // used by StringTemplate
+    new String[]{ "ANTLR 2.7.7",  
+                  "http://www.antlr2.org/", 
+                  "public domain" // note ANTLR3 is BSD
+                },
+
     
   };
   
