@@ -15,12 +15,17 @@
  */
 package edu.ucsd.hep.roofitexplorer;
 
+import com.google.common.base.Joiner;
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 import edu.ucsd.hep.rootrunnerutil.AHUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.ini4j.Ini;
 import org.ini4j.Wini;
 
@@ -54,6 +59,9 @@ public class UserProfileData
   
   /** command to create a temporary file (e.g. on a remote machine). */
   private String createTempFileCmd;
+  
+  /** libraries to load at startup */
+  private List<String> startupLibs = new ArrayList<String>();
   
   //----------------------------------------------------------------------
   public String getPreRootShellCommands()
@@ -95,6 +103,10 @@ public class UserProfileData
       retval.rootCmd = section.get("rootCmd","root");
       retval.transferRemoteFileToLocalCmd = section.get("transferRemoteFileToLocalCmd", (String)null);
       retval.createTempFileCmd = section.get("createTempFileCmd", (String) null);
+    
+      String tmp = section.get("startupLibs", "");
+      retval.startupLibs = Arrays.asList(tmp.split("\\s*,\\s*"));
+    
     }
     
     return retval;
@@ -132,6 +144,8 @@ public class UserProfileData
     ini.put("ROOT", "transferRemoteFileToLocalCmd", transferRemoteFileToLocalCmd);
     ini.put("ROOT", "createTempFileCmd", createTempFileCmd);
     
+    ini.put("ROOT", "startupLibs", Joiner.on(", ").join(startupLibs));
+    
     ini.store();
   }
   
@@ -151,5 +165,11 @@ public class UserProfileData
   
   //----------------------------------------------------------------------
 
+  public List<String> getStartupLibs()
+  {
+    return Collections.unmodifiableList(startupLibs);
+  }
+
+  //----------------------------------------------------------------------
   
 }

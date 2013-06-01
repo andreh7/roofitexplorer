@@ -23,7 +23,6 @@ import edu.ucsd.hep.roofitexplorer.view.graph.GraphPanelAdapter;
 import edu.ucsd.hep.roofitexplorer.view.misc.AboutDialog;
 import edu.ucsd.hep.roofitexplorer.view.misc.BrowserPanel;
 import edu.ucsd.hep.roofitexplorer.view.misc.WorkspaceMemberListWithFilterPanel;
-import edu.ucsd.hep.rootrunnerutil.AHUtils;
 import edu.ucsd.hep.rootrunnerutil.PipeCommandRunnerListener;
 import edu.ucsd.hep.rootrunnerutil.ROOTRunner;
 import edu.ucsd.hep.rootrunnerutil.ROOTRunnerImpl;
@@ -32,7 +31,6 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -222,13 +220,18 @@ public class Main
     // disable special ROOT signal handlers
     root_runner.writeLine("gSystem->ResetSignals();");
     
+    // first load the libraries specified in the profile
+    for (String libraryToLoad : userProfileData.getStartupLibs())
+    {
+      root_runner.writeLine(".L " + libraryToLoad);
+    }
+    
     // if loading of external shared libraries was requested on the command
     // line, do it now
     for (String libraryToLoad : options.librariesToLoad)
     {
       root_runner.writeLine(".L " + libraryToLoad);
     }
-    
     
     // root_runner.addCommandPipeListener(new StreamPrinterCommandListener());
     
