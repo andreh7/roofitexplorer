@@ -28,11 +28,19 @@ import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListenerList;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
@@ -184,11 +192,33 @@ public class GraphPanel extends JPanel
     final GraphZoomScrollPane panel = new GraphZoomScrollPane(viewer);
     this.add(panel, BorderLayout.CENTER);
 
+    //----------
+    JPanel northPanel = new JPanel();
+
+    // make a snapshot of the graph panel and copy it to the clipboard 
+    JButton snapshotButton = new JButton("snapshot");
+    snapshotButton.addActionListener(new ActionListener(){
+
+      public void actionPerformed(ActionEvent ae)
+      {
+        copyPanelSnapshotToClipboard();
+      }
+    
+    });
+    
+    northPanel.add(snapshotButton);
+
+    
     final DefaultModalGraphMouse mouse = new DefaultModalGraphMouse();
     viewer.setGraphMouse(mouse);
     mouse.setMode(ModalGraphMouse.Mode.PICKING);
   
-    this.add(mouse.getModeComboBox(), BorderLayout.NORTH);
+    northPanel.add(mouse.getModeComboBox());
+    
+    
+    this.add(northPanel, BorderLayout.NORTH);
+
+    //----------
 
     
     for (GraphMouseListener<VertexType> listener : this.graphMouseListeners)
@@ -365,4 +395,33 @@ public class GraphPanel extends JPanel
 
   //----------------------------------------------------------------------
 
+  /** this should actually work on any panel (can be moved to another
+   *  class
+   * @param panel 
+   */
+  private BufferedImage makePanelShot()
+  {  
+    JPanel thePanel = viewer;
+    
+    BufferedImage image = new BufferedImage(thePanel.getSize().width, thePanel.getSize().height,BufferedImage.TYPE_INT_RGB);  
+    thePanel.paint(image.createGraphics());  
+    return image;
+  }  
+
+  //----------------------------------------------------------------------
+  
+  /** takes a shot of the panel and copies the image to the clipboard.
+   *
+   *  Note that on Ubuntu 12.04 this does NOT work with Gimp
+   *  but it DOES work to paste the copied image e.g. inside
+   *  a compose window of Thunderbird.
+   * 
+   *  See also http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=2155995
+   */
+  public void copyPanelSnapshotToClipboard()
+  {
+    BufferedImage img = makePanelShot();
+    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new TransferableBufferedImage(img), null);
+  }
+  
 }
