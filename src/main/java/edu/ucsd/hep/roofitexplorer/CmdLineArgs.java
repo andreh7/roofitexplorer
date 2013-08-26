@@ -64,6 +64,14 @@ public class CmdLineArgs
           )
   String profileName = UserProfileManager.defaultProfileName;
   
+  
+  
+  @Option(name = "--show-profiles",
+          usage = "Show the names of the known profiles and exit"
+          )
+  boolean showProfiles = false;
+  
+  
   //----------
   
   

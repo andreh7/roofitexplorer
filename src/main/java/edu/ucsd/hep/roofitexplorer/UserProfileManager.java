@@ -17,6 +17,8 @@ package edu.ucsd.hep.roofitexplorer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Provides some utilities for handling user profiles.
@@ -102,4 +104,32 @@ public class UserProfileManager
   }
   
   //----------------------------------------------------------------------
+
+  /** @return a list of known profiles */
+  public static List<String> getKnownProfiles()
+  {
+    List<String> retval = new ArrayList<String>();
+    
+    File[] files = new File(getUserProfileDirectory().getAbsolutePath()).listFiles();
+
+    for (File file : files)
+    {
+      if (file.isDirectory())
+        continue;
+     
+      // this is just the last part of the name
+      String name = file.getName(); 
+     
+      if (!name.endsWith(".ini"))
+        continue;
+     
+      retval.add(name.substring(0, name.length() - ".ini".length()));
+    }
+    
+    return retval;
+  }
+  
+  //----------------------------------------------------------------------
+  
+  
 }

@@ -139,6 +139,16 @@ public class Main
     
     processCommandLineOptions(args);
       
+    // check whether we should just list/show the known profiles and exit
+    if (options.showProfiles)
+    {
+      System.err.println("known profiles:");
+      for (String profileName : UserProfileManager.getKnownProfiles())
+        System.err.println("  " + profileName);
+      System.exit(0);
+    }
+    
+    
     // get the selected user profile
     // this will throw an exception if the profile does not exist
     // (and is not the default profile)
