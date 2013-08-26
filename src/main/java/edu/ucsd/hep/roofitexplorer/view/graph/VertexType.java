@@ -16,6 +16,7 @@
 package edu.ucsd.hep.roofitexplorer.view.graph;
 
 import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
+import edu.ucsd.hep.roofitexplorer.datatypes.RooConstVarData;
 import edu.ucsd.hep.roofitexplorer.datatypes.RooFormulaVarData;
 import edu.ucsd.hep.roofitexplorer.datatypes.RooRealVarData;
 import java.util.List;
@@ -59,12 +60,13 @@ public class VertexType implements Comparable<VertexType>
         this.obj.getVarName() + "<br/>"; 
 
     // type specific information
+    // note that we should test for the most specific types first...
     if (this.obj instanceof RooFormulaVarData)
       retval += this.getRooFormulaVarSpecificString((RooFormulaVarData)(this.obj));
+    else if (this.obj instanceof RooConstVarData)
+      retval += this.getRooConstVarSpecificString((RooConstVarData)(this.obj));
     else if (this.obj instanceof RooRealVarData)
       retval += this.getRooRealVarSpecificString((RooRealVarData)(this.obj));
-
-      
     
     retval += "</html>";
     return retval;
@@ -106,6 +108,16 @@ public class VertexType implements Comparable<VertexType>
     return retval;
   }
   
+  //----------------------------------------------------------------------
+  private String getRooConstVarSpecificString(RooConstVarData data)
+  {
+    String retval = "";
+    if (data.value != null)
+      retval += "value: " + data.value + "<br/>";
+    
+    return retval;
+  }
+
   //----------------------------------------------------------------------
 
   public GenericWorkspaceMember getObj()

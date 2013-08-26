@@ -23,10 +23,25 @@ import edu.ucsd.hep.roofitexplorer.WorkspaceData;
  */
 public class RooConstVarData extends RooAbsRealData
 {
+  //----------------------------------------------------------------------
+
+  /** can be null if not known / not read */
+  public Double value;
+
+  //----------------------------------------------------------------------
 
   public RooConstVarData(WorkspaceData workspace, String varName, String className, VerbosePrintOutput detailedData)
   {
     super(workspace, varName, className, detailedData);
   }
-  
+ 
+  //----------------------------------------------------------------------
+
+  public Double getValue()
+  {
+    return value;
+  }
+
+  //----------------------------------------------------------------------
+
 }

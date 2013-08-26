@@ -376,9 +376,54 @@ public class WorkspaceDataReader2 extends GenericWorkspaceDataReader
     VerbosePrintOutput detailedData = GenericWorkspaceMember.getMemberVerboseData(rootRunner, workspaceName, varName);
     
     RooConstVarData retval = new RooConstVarData(workspace, varName, "RooConstVar", detailedData);
+    
+    this.readAdditionalRooConstVarData(varName, retval);
+
     this.constants.add(retval);
   }
 
+  //----------------------------------------------------------------------
+
+  /** this is actually similar to the method readAdditionalRooRealVarData(..) */
+  private void readAdditionalRooConstVarData(String varname, RooConstVarData data) throws IOException
+  {
+    // note that for RooConstVars, some of them have names like numeric literals
+    // (e.g. '1')
+    
+    // note that we can't use 'obj' as variable name again, despite the
+    // fact that this lives in a different scope. Using a different
+    // variable name seems to make it work (but when we run interactively
+    // it seems to work also if we use the same variable name...)
+    // 
+    // This was the experience at least with ROOT 5.34/03
+    //
+    // note that we could create a new variable name (e.g. using the current
+    // number of Nanoseconds) but this could be resource-wasting...
+    
+    String cmd = "{ RooAbsReal *absReal = " + workspaceName + "->function(\"" + varname + "\"); " +
+        " cout " +
+        "<< absReal->getVal() " + 
+        "<< endl; }";
+    
+    // System.out.println("cmd=" + cmd);
+    String summary = rootRunner.getCommandOutput(cmd);
+    // split into lines as ROOT seems to insist to append a line
+    // with the last return value (e.g. "(class ostream)139784828968064" )
+    
+    // System.out.println("summary='" + summary + "'");
+    
+    // avoid having an empty first line due to a newline at the beginning...
+    summary = summary.trim();
+    
+    List<String> lines = AHUtils.splitToLines(summary);
+    
+    String line = lines.get(0);
+    
+    // System.out.println("line=" + line);
+    line = line.trim();
+    
+    data.value = Double.parseDouble(line);
+  }
   //----------------------------------------------------------------------
 
   private void readSingleDataSet(String varName, String className) throws IOException
