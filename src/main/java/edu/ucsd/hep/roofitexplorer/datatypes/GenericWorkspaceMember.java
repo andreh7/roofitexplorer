@@ -59,7 +59,12 @@ public class GenericWorkspaceMember implements Serializable
   private WorkspaceMemberList serversList;
   private WorkspaceMemberList clientsList;
   private WorkspaceMemberList leafServersList;
-
+  
+  /** List of all clients and their clients etc. This is also the list of 
+   *  other objects in the workspace which are influenced by this workspace member.
+   * 
+   * TODO: we could also use this to determine the value for 'numOverallClients' */
+  private WorkspaceMemberList overallClients;
 
   //----------------------------------------------------------------------
 
@@ -230,6 +235,50 @@ public class GenericWorkspaceMember implements Serializable
     return new WorkspaceMemberList(clientsList);
   }
   
+  //----------------------------------------------------------------------
+  
+  /** @return the clients of this workspace member, their clients etc.
+   *  This is the list of all objects which are influenced by this
+   *  workspace member (or in other words have a dependency on it). 
+   * 
+   *  Note that this are not only 'top level' nodes which are returned
+   *  but all in between.
+   */
+  public WorkspaceMemberList getOverallClients()
+  {
+
+    if (this.overallClients == null)
+    {
+      Set<GenericWorkspaceMember> toVisit = new HashSet<GenericWorkspaceMember>();
+      Set<GenericWorkspaceMember> visited = new HashSet<GenericWorkspaceMember>();
+      
+      toVisit.addAll(this.getClients().getList());
+
+      while (! toVisit.isEmpty())
+      {
+        // get the first element
+        GenericWorkspaceMember member = toVisit.iterator().next();
+        
+        if (! visited.contains(member))
+        {
+          visited.add(member);
+         
+          toVisit.addAll(member.getClients().getList());
+          
+        } // if not yet visited
+        
+        toVisit.remove(member);
+      }
+      
+       // get the objects on demand
+      overallClients = new WorkspaceMemberList(visited);
+    }
+    
+    // make a copy
+    return new WorkspaceMemberList(overallClients);
+      
+  }
+
   //----------------------------------------------------------------------
 
   public int getNumClients()

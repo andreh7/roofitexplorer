@@ -438,6 +438,29 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
       popupMenu.add(menuItem);
     }
 
+    
+    //----------
+    // show all elements influenced by this
+    //----------
+    {
+      menuItem = new JMenuItem("all elements influenced by this (clients etc.)");
+      
+      if (member.hasClients())
+      {
+        menuItem.addActionListener(new ActionListener()
+        {
+          public void actionPerformed(ActionEvent ae)
+          {
+            makeInternalFrame("elements influenced by " + member.getVarName(), member.getOverallClients()).setVisible(true);
+          }
+        });
+      }
+      else
+        menuItem.setEnabled(false);
+      
+      popupMenu.add(menuItem);
+    }
+    
     //----------
     // show leaf servers
     //----------
