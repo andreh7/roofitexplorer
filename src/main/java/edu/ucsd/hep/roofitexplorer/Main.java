@@ -71,6 +71,8 @@ public class Main
   /** variable name used to assign the opened input file */
   private final String inputFileVariableName = "fin";
   
+  private final static Main instance = new Main();
+  
   //----------------------------------------------------------------------
 
   public static void main(String[] args) throws IOException, CmdLineException, ClassNotFoundException
@@ -85,7 +87,7 @@ public class Main
     // (see http://stackoverflow.com/questions/8955638/how-do-i-move-my-jmenubar-to-the-screen-menu-bar-on-mac-os-x)
     System.setProperty("apple.laf.useScreenMenuBar","true");
     
-    new Main().run(args);
+    instance.run(args);
   }
   
   //----------------------------------------------------------------------
@@ -451,7 +453,7 @@ public class Main
 
   /** opens a new graph panel and makes it the 'current' one 
    *  in which the current graphs are displayed */
-  private void newGraphPanel()
+  public GraphPanel newGraphPanel()
   {
       final GraphPanel graphPanel = new GraphPanel();
       JInternalFrame iframe = graphPanel.makeInternalFrame("graph");
@@ -485,6 +487,7 @@ public class Main
         }
       });
       
+    return graphPanel;
   }
   
   //----------------------------------------------------------------------
@@ -644,6 +647,13 @@ public class Main
    
   }
  
+  //----------------------------------------------------------------------
+
+  public static Main getInstance()
+  {
+    return instance;
+  }
+  
   //----------------------------------------------------------------------
 
 }
