@@ -23,15 +23,16 @@ import edu.uci.ics.jung.visualization.control.GraphMouseListener;
 import edu.uci.ics.jung.visualization.control.ModalGraphMouse;
 import edu.uci.ics.jung.visualization.decorators.EdgeShape;
 import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
+import edu.ucsd.hep.roofitexplorer.Main;
 import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListener;
 import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListenerList;
+import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
-import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -43,7 +44,9 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 
 /**
@@ -362,11 +365,13 @@ public class GraphPanel extends JPanel
    */
   private void showVertexPopupMenu(VertexType vertex, MouseEvent me)
   {
-    System.out.println("showing popup menu on vertex " + vertex.getObj().getVarName());
+    makeVertexPopupMenu(vertex, me).show(this, me.getX(), me.getY());
 
-    System.out.println();
-    System.out.println("original data:");
-    System.out.println(vertex.getObj().getDetailedData().getOriginalOutput());
+    // System.out.println("showing popup menu on vertex " + vertex.getObj().getVarName());
+
+    // System.out.println();
+    // System.out.println("original data:");
+    // System.out.println(vertex.getObj().getDetailedData().getOriginalOutput());
   }
 
   //----------------------------------------------------------------------
@@ -422,6 +427,61 @@ public class GraphPanel extends JPanel
   {
     BufferedImage img = makePanelShot();
     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new TransferableBufferedImage(img), null);
+  }
+
+  //----------------------------------------------------------------------
+
+  private JPopupMenu makeVertexPopupMenu(VertexType vertex, MouseEvent me)
+  {
+    JPopupMenu popupMenu = new JPopupMenu();
+
+    //----------
+    final GenericWorkspaceMember member = vertex.getObj();
+
+    JMenuItem menuItem;
+    //----------
+    // copy variable name to clipboard
+    //----------
+    {
+      menuItem = new JMenuItem("copy variable name");
+      
+        menuItem.addActionListener(new ActionListener()
+        {
+          public void actionPerformed(ActionEvent ae)
+          {
+            Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+            StringSelection sel = new StringSelection(member.getVarName());
+            cb.setContents(sel, null);
+          }
+        });
+      
+      popupMenu.add(menuItem);
+    }
+    
+    //----------
+    // open a new graph panel with this member as the top level member
+    //----------
+    {
+      menuItem = new JMenuItem("new graph panel for this member");
+      
+      menuItem.addActionListener(new ActionListener()
+      {
+        public void actionPerformed(ActionEvent ae)
+        {
+          GraphPanel gp = Main.getInstance().newGraphPanel();
+          
+          GraphMaker graphMaker = new GraphMaker(member.getWorkspace());
+          // create a graph for the selected member
+          gp.setGraph(graphMaker.makeSingleNodeGraph(member), member.getVarName());
+          
+        }
+      });
+  
+      popupMenu.add(menuItem);
+    }
+    //----------
+
+    return popupMenu;
   }
   
 }
