@@ -34,7 +34,7 @@ import javax.swing.JScrollPane;
  * A panel do display one dimensional plots
  * @author holzner
  */
-public class OneDimPlotPanel extends JPanel
+public class OneDimPlotPanel extends JPanel implements WorkspaceMemberModifiedListener
 {
   private final ROOTRunner rootRunner;
   //----------------------------------------------------------------------
@@ -71,24 +71,7 @@ public class OneDimPlotPanel extends JPanel
     this.updatePlot();
   
     // request a notification if the corresponding function is modified
-    
-    WorkspaceMemberModifiedListener listener = new WorkspaceMemberModifiedListener(){
-
-      public void modifed(GenericWorkspaceMember member)
-      {
-        try
-        {
-          // redraw the plot using ROOT
-          updatePlot();
-        } catch (IOException ex)
-        {
-          //Logger.getLogger(OneDimPlotPanel.class.getName()).log(Level.SEVERE, null, ex);
-          JOptionPane.showMessageDialog(null, "failed to update plot for function " + func.getVarName(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
-      }
-    };
-      
-    func.getWorkspace().getModificationDispatcher().addListener(listener, func);
+    func.getWorkspace().getModificationDispatcher().addListener(this, func);
   }
   
   //----------------------------------------------------------------------
@@ -126,6 +109,25 @@ public class OneDimPlotPanel extends JPanel
     return internalFrame;
   }
   
+  //----------------------------------------------------------------------
+
+  /** this is called whenever the corresponding pdf (or one of it's
+   *  servers) is modified.
+   * @param member 
+   */
+  public void modifed(GenericWorkspaceMember member)
+  {
+    try
+    {
+      // redraw the plot using ROOT
+      updatePlot();
+    } catch (IOException ex)
+    {
+      //Logger.getLogger(OneDimPlotPanel.class.getName()).log(Level.SEVERE, null, ex);
+      JOptionPane.showMessageDialog(null, "failed to update plot for function " + func.getVarName(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+  }
+
   //----------------------------------------------------------------------
 
 }
