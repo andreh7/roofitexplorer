@@ -32,6 +32,7 @@ import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Point;
+import static java.awt.SystemColor.desktop;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -488,6 +489,15 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
     popupMenu.add(this.makePlottingMenuItem(member));
     
     //----------
+    // show the value
+    //----------
+    {
+      menuItem = makeWatchValueMenuItem(member);
+      menuItem.setEnabled(member instanceof RooAbsRealData);
+      
+      popupMenu.add(menuItem);
+    }
+    //----------
     // show the output of Print("V")
     //----------
     {
@@ -563,6 +573,7 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
     
     return retval;
   }
+  
   //----------------------------------------------------------------------
 
   private JMenuItem makePlottingMenuItem(final GenericWorkspaceMember member)
@@ -642,8 +653,7 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
    *  displays it in an internal frame */
   private void plot1D(RooAbsRealData func, RooRealVarData xvariable, JDesktopPane desktop) throws IOException
   {
-        // create an internal frame displaying the png file
-
+    // create an internal frame displaying the png file
     OneDimPlotPanel plotPanel = new OneDimPlotPanel(rootRunner, workspaceName, func, xvariable);
     JInternalFrame internalFrame = plotPanel.makeInternalFrame();
     internalFrame.setVisible(true);
@@ -654,6 +664,38 @@ public class SimpleWorkspaceMemberListPanel extends JPanel
     internalFrame.toFront();
   }
   
+  //----------------------------------------------------------------------
+
+  private JMenuItem makeWatchValueMenuItem(final GenericWorkspaceMember function)
+  {
+    JMenuItem retval = new JMenuItem("watch value");
+
+    final JDesktopPane desktop = getDesktop();
+    
+    retval.addActionListener(new ActionListener()
+    {
+      public void actionPerformed(ActionEvent ae)
+      {
+        try
+        {
+          // create an internal frame displaying the png file
+          RooAbsRealValueDisplay displayPanel = new RooAbsRealValueDisplay(rootRunner, workspaceName, (RooAbsRealData) function);
+          JInternalFrame internalFrame = displayPanel.makeInternalFrame();
+          internalFrame.setVisible(true);
+
+          desktop.add(internalFrame);
+          internalFrame.toFront();
+         
+        } catch (IOException ex)
+        {
+          //Logger.getLogger(SimpleWorkspaceMemberListPanel.class.getName()).log(Level.SEVERE, null, ex);
+          JOptionPane.showMessageDialog(null, "problem show value: " + ex, "ERROR", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+    });
+    
+    return retval;
+  }
   //----------------------------------------------------------------------
 
   
