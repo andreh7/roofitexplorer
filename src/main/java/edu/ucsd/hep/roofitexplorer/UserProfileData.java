@@ -94,8 +94,7 @@ public class UserProfileData
 
     // set the fields
     // section for ROOT
-    Ini.Section section;
-    section = ini.get("ROOT");
+    Ini.Section section = (Ini.Section) ini.get("ROOT");
     
     if (section != null)
     {
