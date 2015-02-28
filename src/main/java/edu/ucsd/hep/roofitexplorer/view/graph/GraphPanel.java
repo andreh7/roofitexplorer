@@ -27,6 +27,7 @@ import edu.ucsd.hep.roofitexplorer.Main;
 import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListener;
 import edu.ucsd.hep.roofitexplorer.WorkspaceMemberSelectionListenerList;
 import edu.ucsd.hep.roofitexplorer.datatypes.GenericWorkspaceMember;
+import edu.ucsd.hep.roofitexplorer.datatypes.WorkspaceMemberList;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -44,6 +45,7 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -478,6 +480,43 @@ public class GraphPanel extends JPanel
       });
   
       popupMenu.add(menuItem);
+    }
+    //----------
+    // open a new graph panel for one of the direct servers
+    // (useful especially for the top node of the graph)
+    //----------
+    {
+      WorkspaceMemberList clients = member.getClients();
+    
+      JMenu submenu = new JMenu("new graph panel for direct client");
+      
+      if (clients.isEmpty())
+        submenu.setEnabled(false);
+      else
+      {
+        for (final GenericWorkspaceMember client : clients)
+        {
+          menuItem = new JMenuItem(client.getVarName());
+          
+          menuItem.addActionListener(new ActionListener()
+          {
+            public void actionPerformed(ActionEvent ae)
+            {
+              GraphPanel gp = Main.getInstance().newGraphPanel();
+
+              GraphMaker graphMaker = new GraphMaker(client.getWorkspace());
+              // create a graph for the selected member
+              gp.setGraph(graphMaker.makeSingleNodeGraph(client), client.getVarName());
+
+            }
+          });
+
+          submenu.add(menuItem);
+
+        } // loop over all (direct) servers
+      }
+      popupMenu.add(submenu);
+      
     }
     //----------
 
