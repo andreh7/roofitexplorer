@@ -105,7 +105,7 @@ public class RooFormulaVarData extends RooAbsRealData
     lines = detailedData.findSubSection("RooAbsArg", "Proxies");
     
     if (lines.isEmpty())
-      throw new Error("could not find Proxies subsection");
+      throw new Error("could not find Proxies subsection for object " + varName);
     
     String line = lines.remove(0).trim();
     if (! "actualVars ->".equals(line))
