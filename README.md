@@ -4,7 +4,7 @@ This is a tool to interactively visualize RooFit workspaces and aims to be a 'Ro
 
 It is currently in alpha stage but has already been used to provide useful visualization of contents of RooWorkspace objects.
 
-Snapshots of binary files are made available on the [releases page](releases). The jar files provided there can be run from the command line (tested on OSX and Linux) as:
+Snapshots of binary files are made available on the [releases page](../../releases). The jar files provided there can be run from the command line (tested on OSX and Linux) as:
 
     java -jar rooFitExplorer-....jar [ options ]
 
